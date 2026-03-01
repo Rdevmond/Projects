@@ -107,7 +107,7 @@
                 <td class="px-8 py-5 text-center">
                     <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-900 rounded-full text-slate-600 dark:text-slate-400 text-xs font-bold transition-colors">
                         <svg class="w-3 h-3 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        {{ $sub->started_at ? $sub->started_at->diffInMinutes($sub->created_at) . 'm' : '-' }}
+                        {{ $sub->duration }}
                     </div>
                 </td>
                 <td class="px-8 py-5 text-center">

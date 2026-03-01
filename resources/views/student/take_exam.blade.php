@@ -174,10 +174,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear timer and beforeunload on manual submit
         form.addEventListener('submit', function() {
              localStorage.removeItem(timerKey);
-             window.onbeforeunload = null;
         });
+    }
 
-        window.confirmSubmission = function() {
+    // Always clear beforeunload on form submit
+    form.addEventListener('submit', function() {
+        window.onbeforeunload = null;
+    });
+
+    window.confirmSubmission = function() {
             confirmAction({
                 title: 'Final Submission',
                 message: 'Are you sure you want to end the exam? You will not be able to change your answers once submitted.',
@@ -189,6 +194,11 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         window.submitExamForm = function() {
+            window.onbeforeunload = null;
+            if (durationMinutes > 0) { // Only clear timer key if timer was active
+                const timerKey = 'exam_start_' + '{{ $exam->uuid }}';
+                localStorage.removeItem(timerKey);
+            }
             form.submit();
         };
     }

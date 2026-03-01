@@ -25,6 +25,7 @@
                 <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">
                     <th class="px-6 py-5 text-[#005073] dark:text-[#00bceb] transition-colors">Student</th>
                     <th class="px-6 py-5 text-[#005073] dark:text-[#00bceb] transition-colors">Score Performance</th>
+                    <th class="px-6 py-5 text-center text-[#005073] dark:text-[#00bceb] transition-colors">Time Spent</th>
                     <th class="px-6 py-5 text-center text-[#005073] dark:text-[#00bceb] transition-colors">Status</th>
                     <th class="px-6 py-5 text-right text-[#005073] dark:text-[#00bceb] transition-colors">Submitted At</th>
                     <th class="px-6 py-5 text-right text-[#005073] dark:text-[#00bceb] transition-colors">Action</th>
@@ -44,6 +45,12 @@
                                 @php $percent = ($sub->score / max($sub->total_questions, 1)) * 100; @endphp
                                 <div class="bg-[#005073] dark:bg-[#00bceb] h-full rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
                             </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5 text-center">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-slate-500 dark:text-slate-400 text-[10px] font-bold transition-colors">
+                            <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ $sub->duration }}
                         </div>
                     </td>
                     <td class="px-6 py-5 text-center">

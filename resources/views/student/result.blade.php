@@ -5,7 +5,7 @@
     
     {{-- Score Hero Section --}}
     <div class="relative mb-20">
-        <div class="absolute inset-0 bg-gradient-to-br from-[#005073] to-[#049FD9] rounded-[4rem] transform -rotate-1 shadow-2xl opacity-20"></div>
+        <div class="absolute inset-0 bg-linear-to-br from-[#005073] to-[#049FD9] rounded-[4rem] transform -rotate-1 shadow-2xl opacity-20"></div>
         <div class="relative bg-slate-900 border border-slate-800 shadow-2xl rounded-[4rem] p-12 md:p-16 overflow-hidden">
             {{-- Decorative pattern --}}
             <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
@@ -48,9 +48,9 @@
                             <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Performance</span>
                             <span class="text-2xl font-black text-[#00bceb]">{{ $percentage }}%</span>
                         </div>
-                        <div class="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 text-[#E2231A]">
-                            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</span>
-                            <span class="text-2xl font-black">CERTIFIED</span>
+                        <div class="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
+                            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Time Spent</span>
+                            <span class="text-2xl font-black text-amber-400">{{ $submission->duration }}</span>
                         </div>
                     </div>
                 </div>

@@ -44,10 +44,14 @@ class ExamSubmission extends Model
 
     public function getDurationAttribute()
     {
-        if (! $this->started_at || ! $this->created_at) {
+        if (! $this->started_at || ! $this->updated_at) {
             return '-';
         }
 
-        return $this->started_at->diffInMinutes($this->created_at) . ' min';
+        $diff = $this->started_at->diff($this->updated_at);
+        $m = ($diff->days * 24 * 60) + ($diff->h * 60) + $diff->i;
+        $s = $diff->s;
+
+        return "{$m}m {$s}s";
     }
 }
