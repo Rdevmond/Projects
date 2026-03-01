@@ -1,7 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="examBuilder({{ $exam->questions->toJson() }})" class="max-w-5xl mx-auto py-12 px-4 transition-colors" x-cloak>
+@php
+    $allStudents = \App\Models\User::where('role', 0)->orderBy('name')->get()->map(function($s) {
+        return [
+            'id' => $s->id,
+            'name' => $s->name,
+            'school' => $s->school ?? 'General'
+        ];
+    });
+    $assignedUserIds = $exam->assignedUsers->pluck('id')->toArray();
+@endphp
+
+<div x-data="examBuilder({{ $exam->questions->toJson() }}, {{ $allStudents->toJson() }}, {{ json_encode($assignedUserIds) }})" class="max-w-5xl mx-auto py-12 px-4 transition-colors" x-cloak>
     <form action="{{ route('admin.exams.update', $exam) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -16,44 +27,102 @@
             </div>
 
             <input type="text" name="exam_title" value="{{ $exam->title }}" required
-                class="text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full bg-transparent border-b-2 border-slate-100 dark:border-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:outline-none mb-4 pb-2 transition-all placeholder-slate-200 dark:placeholder-slate-700 transition-colors"
-                placeholder="Exam Title">
+                class="text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:outline-none mb-4 pb-2 transition-all placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
+                placeholder="Enter Exam Title...">
 
             <input type="text" name="exam_description" value="{{ $exam->description }}"
-                class="text-lg text-slate-400 dark:text-slate-500 w-full bg-transparent border-none focus:ring-0 p-0 transition-colors"
+                class="text-lg text-slate-500 dark:text-slate-400 w-full bg-transparent border-none focus:ring-0 p-0 transition-colors placeholder-slate-400 dark:placeholder-slate-500"
                 placeholder="No description provided...">
 
             <div class="mt-4 flex items-center gap-4">
                 <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
                     <svg class="w-5 h-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <input type="number" name="duration" value="{{ $exam->duration }}" min="1"
-                        class="bg-transparent border-none p-0 w-24 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder-slate-300 dark:placeholder-slate-600 transition-colors"
+                        class="bg-transparent border-none p-0 w-24 text-sm font-bold text-slate-700 dark:text-slate-100 focus:ring-0 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                         placeholder="Duration">
                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase transition-colors">Minutes</span>
                 </div>
+
+                {{-- Randomize Toggle --}}
+                <label class="flex items-center gap-3 cursor-pointer group bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
+                    <div class="relative w-10 h-5 flex items-center">
+                        <input type="checkbox" name="randomize_questions" value="1" {{ ($exam->randomize_questions ?? false) ? 'checked' : '' }} class="sr-only peer">
+                        <div class="w-full h-full bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-[#00bceb] transition-colors"></div>
+                        <div class="absolute left-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 uppercase tracking-widest transition-colors">Randomize Order</span>
+                </label>
             </div>
 
-            {{-- User Assignment Section --}}
-            <div class="mt-6">
-                <label class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    Assign Students (Optional - Leave empty for all students)
-                </label>
-                <select name="assigned_users[]" multiple 
-                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-700 dark:text-slate-200 focus:border-[#00bceb] dark:focus:border-[#00bceb] focus:ring-0 transition-all"
-                        size="6">
-                    @foreach(\App\Models\User::where('role', 0)->orderBy('name')->get() as $student)
-                        <option value="{{ $student->id }}" 
-                                {{ $exam->assignedUsers->contains($student->id) ? 'selected' : '' }}
-                                class="py-1">
-                            {{ $student->name }} ({{ $student->email }})
-                        </option>
-                    @endforeach
-                </select>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 flex items-center gap-1 transition-colors">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Hold Ctrl/Cmd to select multiple students
-                </p>
+            {{-- User Assignment Section (DYNAMIC) --}}
+            <div class="mt-8 p-8 bg-[#eefbff]/30 dark:bg-slate-900/50 rounded-4xl border-2 border-dashed border-[#00bceb]/20 dark:border-[#005073]/40 transition-colors">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <label class="text-[10px] font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] flex items-center gap-2 mb-1 transition-colors">
+                            <div class="p-1.5 bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 rounded-lg shadow-md transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            </div>
+                            Target Audience
+                        </label>
+                        <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest italic transition-colors">Optional: Leave empty for all students</span>
+                    </div>
+
+                    {{-- SEARCH & SORT CONTROLS --}}
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="relative">
+                            <input type="text" x-model="studentSearch" placeholder="Search school or student..." 
+                                   class="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:border-[#00bceb] focus:ring-4 focus:ring-[#00bceb]/5 transition-all w-full md:w-60 placeholder-slate-400 dark:placeholder-slate-500">
+                            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        
+                        <div class="flex bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1 transition-colors">
+                            <button type="button" @click="studentSort = 'name_asc'" 
+                                    :class="studentSort === 'name_asc' ? 'bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 border-[#005073] dark:border-[#00bceb]' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'"
+                                    class="px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all">A-Z</button>
+                            <button type="button" @click="studentSort = 'school'" 
+                                    :class="studentSort === 'school' ? 'bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 border-[#005073] dark:border-[#00bceb]' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'"
+                                    class="px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all">School</button>
+                        </div>
+                    </div>
+                </div>
+                
+                {{-- SELECTABLE LIST --}}
+                <div class="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-inner transition-colors">
+                    <div class="max-h-60 overflow-y-auto custom-scrollbar p-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <template x-for="student in filteredStudents" :key="student.id">
+                            <div @click="toggleStudent(student.id)" 
+                                 :class="selectedStudentIds.includes(student.id) ? 'bg-[#005073] dark:bg-[#00bceb] border-[#005073] dark:border-[#00bceb] text-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                                 class="flex items-center justify-between px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all group transition-colors">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-black" x-text="student.name"></span>
+                                    <span :class="selectedStudentIds.includes(student.id) ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400'" 
+                                          class="text-[9px] font-bold uppercase tracking-widest transition-colors" x-text="student.school"></span>
+                                </div>
+                                <div :class="selectedStudentIds.includes(student.id) ? 'bg-white dark:bg-slate-900 text-[#005073] dark:text-[#00bceb]' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-600'"
+                                     class="w-5 h-5 rounded-full flex items-center justify-center transition-colors">
+                                    <svg x-show="selectedStudentIds.includes(student.id)" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="filteredStudents.length === 0" class="col-span-full py-10 text-center text-slate-300 dark:text-slate-700 italic text-xs font-bold transition-colors">
+                            No students found matching your criteria.
+                        </div>
+                    </div>
+                </div>
+
+                {{-- HIDDEN INPUTS FOR FORM SUBMISSION --}}
+                <template x-for="id in selectedStudentIds">
+                    <input type="hidden" name="assigned_users[]" :value="id">
+                </template>
+                
+                <div class="mt-6 flex items-center justify-between px-2">
+                    <div class="flex items-center gap-2">
+                         <span class="text-[10px] font-black text-[#00bceb]" x-text="selectedStudentIds.length"></span>
+                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Students Targeted</span>
+                    </div>
+                    <button type="button" x-show="selectedStudentIds.length > 0" @click="selectedStudentIds = []" 
+                            class="text-[9px] font-black text-[#E2231A] uppercase tracking-widest hover:underline transition-colors focus:outline-none">Clear Selection</button>
+                </div>
             </div>
         </div>
 
@@ -70,7 +139,7 @@
                                 <span class="text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] transition-colors">Question Text</span>
                             </div>
                             <input type="text" :name="`questions[${index}][text]`" x-model="question.question_text" required
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl p-4 text-lg font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-700 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:ring-0 transition-all">
+                                class="w-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-lg font-bold text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:ring-0 transition-all placeholder-slate-400 dark:placeholder-slate-500">
                         </div>
 
                         <div class="md:col-span-4 transition-colors">
@@ -111,6 +180,7 @@
                             <span x-text="question.context_image_path || question.new_preview ? 'CHANGE QUESTION IMAGE' : 'ADD IMAGE'"></span>
                             <input type="file" :name="`questions[${index}][context_image]`" class="hidden"
                                    @change="question.new_preview = URL.createObjectURL($event.target.files[0])">
+                            <input type="hidden" :name="`questions[${index}][context_image_path]`" x-model="question.context_image_path">
                         </label>
                     </div>
                 </div>
@@ -128,7 +198,7 @@
                                     {{-- OPTION KEY BADGE --}}
                                     <label class="relative flex flex-col items-center justify-center w-12 h-12 rounded-xl cursor-pointer transition-all duration-300 transition-colors"
                                            :class="opt.is_correct ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-400 dark:hover:text-slate-400'">
-                                        <input type="checkbox" :name="`questions[${index}][correct][]`" :value="optIndex" :checked="opt.is_correct"
+                                        <input type="checkbox" :name="`questions[${index}][options][${optIndex}][is_correct]`" value="1" :checked="opt.is_correct"
                                                x-model="opt.is_correct"
                                                class="absolute opacity-0 w-full h-full cursor-pointer">
                                         
@@ -137,7 +207,7 @@
 
                                     <div class="grow">
                                         <input type="text" :name="`questions[${index}][options][${optIndex}][text]`" x-model="opt.text"
-                                            class="w-full border-none bg-transparent focus:ring-0 p-0 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors" placeholder="Option text...">
+                                            class="w-full border-none bg-transparent focus:ring-0 p-0 text-sm font-black text-slate-700 dark:text-slate-100 transition-colors placeholder-slate-400 dark:placeholder-slate-500" placeholder="Option text...">
                                     </div>
 
                                     {{-- OPTION IMAGE LOGIC --}}
@@ -155,6 +225,7 @@
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                             <input type="file" :name="`questions[${index}][options][${optIndex}][file]`" class="hidden"
                                                    @change="optPreview = URL.createObjectURL($event.target.files[0])">
+                                            <input type="hidden" :name="`questions[${index}][options][${optIndex}][image]`" x-model="opt.image">
                                         </label>
 
                                         <button type="button" @click="removeOption(index, optIndex)" class="p-2 text-slate-300 dark:text-slate-600 hover:text-[#E2231A] dark:hover:text-rose-400 transition-colors">
@@ -164,7 +235,7 @@
                                 </div>
                             </template>
                             <button type="button" @click="addOption(index)" class="flex items-center gap-2 text-[10px] font-black text-[#E2231A] dark:text-rose-400 uppercase tracking-[0.2em] pt-2 ml-4 transition-colors">
-                                <span class="bg-[#E2231A] dark:bg-rose-500 text-white rounded-md w-5 h-5 flex items-center justify-center text-lg transition-colors">+</span>
+                                <span class="bg-[#E2231A] dark:bg-rose-500 text-white rounded-md w-5 h-5 flex items-center justify-center text-lg leading-none pb-0.5 transition-colors">+</span>
                                 Add Choice
                             </button>
                         </div>
@@ -251,7 +322,7 @@
 </div>
 
 <script>
-function examBuilder(dbQuestions) {
+function examBuilder(dbQuestions, allStudents, assignedIds) {
     return {
         questions: dbQuestions.map(q => ({
             ...q,
@@ -263,14 +334,43 @@ function examBuilder(dbQuestions) {
             }
         })),
 
+        allStudents: allStudents,
+        selectedStudentIds: assignedIds,
+        studentSearch: '',
+        studentSort: 'name_asc', // 'name_asc', 'school'
+        
+        get filteredStudents() {
+            let filtered = this.allStudents.filter(s => 
+                s.name.toLowerCase().includes(this.studentSearch.toLowerCase()) ||
+                s.school.toLowerCase().includes(this.studentSearch.toLowerCase())
+            );
+            
+            if (this.studentSort === 'name_asc') {
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (this.studentSort === 'school') {
+                filtered.sort((a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name));
+            }
+            
+            return filtered;
+        },
+
+        toggleStudent(id) {
+            if (this.selectedStudentIds.includes(id)) {
+                this.selectedStudentIds = this.selectedStudentIds.filter(sid => sid !== id);
+            } else {
+                this.selectedStudentIds.push(id);
+            }
+        },
+
         addQuestion() {
             this.questions.push({
                 id: null,
                 type: 'option',
                 question_text: '',
                 is_required: true,
-                answer_details: { options: [{text: '', is_correct: false}], pairs: [] },
-                new_preview: null
+                answer_details: { options: [{text: '', is_correct: false, image: null}], pairs: [] },
+                new_preview: null,
+                context_image_path: null
             });
         },
 
@@ -334,5 +434,12 @@ window.executeQuestionDeletion = function() {
 
 <style>
     [x-cloak] { display: none !important; }
+    input::placeholder { color: #64748b; font-weight: 700; opacity: 1; }
+    .dark input::placeholder { color: #94a3b8; opacity: 1; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
 </style>
 @endsection

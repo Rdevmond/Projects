@@ -70,6 +70,7 @@ class ExamController extends Controller
             'title' => $request->input('exam_title'),
             'description' => $request->input('exam_description'),
             'duration' => $request->input('duration'),
+            'randomize_questions' => $request->has('randomize_questions'),
             'status' => 'active',
         ]);
 
@@ -102,6 +103,7 @@ class ExamController extends Controller
             'title' => $request->input('exam_title'),
             'description' => $request->input('exam_description'),
             'duration' => $request->input('duration'),
+            'randomize_questions' => $request->has('randomize_questions'),
         ]);
 
         // Hapus soal lama, lalu simpan ulang (untuk handle re-ordering/hapus-tambah soal di Alpine.js)
@@ -135,17 +137,13 @@ class ExamController extends Controller
         $questionsData = $request->input('questions', []);
 
         foreach ($questionsData as $index => $qData) {
-            $contextImagePath = null;
+            $contextImagePath = $qData['context_image_path'] ?? null;
 
             // Cek Context Image
             if ($request->hasFile("questions.{$index}.context_image")) {
                 $cFile = $request->file("questions.{$index}.context_image");
-
-                // Cek real path: Jika kosong, berarti PHP gagal buat file temp
                 if ($cFile->isValid() && !empty($cFile->getRealPath())) {
                     $contextImagePath = $cFile->store('exam_context', 'public');
-                } else {
-                    Log::warning("File upload gagal di soal indeks $index. Error: " . $cFile->getErrorMessage());
                 }
             }
 
@@ -155,11 +153,10 @@ class ExamController extends Controller
             if ($type === 'option') {
                 $items = [];
                 foreach ($qData['options'] ?? [] as $optIndex => $opt) {
-                    $path = null;
+                    $path = $opt['image'] ?? null;
 
                     if ($request->hasFile("questions.{$index}.options.{$optIndex}.file")) {
                         $oFile = $request->file("questions.{$index}.options.{$optIndex}.file");
-
                         if ($oFile->isValid() && !empty($oFile->getRealPath())) {
                             $path = $oFile->store('exam_options', 'public');
                         }
@@ -169,12 +166,11 @@ class ExamController extends Controller
                         'id' => (string) Str::uuid(),
                         'text' => $opt['text'] ?? '',
                         'image' => $path,
-                        'is_correct' => in_array((string) $optIndex, (array) ($qData['correct'] ?? [])),
+                        'is_correct' => isset($opt['is_correct']),
                     ];
                 }
                 $answerDetails = ['options' => $items];
             }
-            // ... (Bagian Connect & Essay tetap seperti sebelumnya)
             elseif ($type === 'connect') {
                 $pairs = [];
                 foreach ($qData['pairs'] ?? [] as $pair) {
@@ -407,6 +403,11 @@ class ExamController extends Controller
         }
         
         // Timer will be initialized by JavaScript in the view
+        
+        if ($exam->randomize_questions) {
+            $exam->setRelation('questions', $exam->questions->shuffle());
+        }
+
         return view('student.take_exam', compact('exam'));
     }
 

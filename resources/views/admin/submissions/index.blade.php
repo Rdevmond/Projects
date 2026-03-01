@@ -35,7 +35,7 @@
                 @forelse($submissions as $sub)
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition group transition-colors">
                     <td class="px-6 py-5">
-                        <div class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#005073] dark:group-hover:text-[#00bceb] transition-colors">{{ $sub->user->name }}</div>
+                        <div class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#005073] dark:group-hover:text-[#00bceb] transition-colors">{{ $sub->user->name ?? 'Unknown Student' }}</div>
                         <div class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest transition-colors">{{ $sub->user->school ?? 'General' }}</div>
                     </td>
                     <td class="px-6 py-5">
@@ -89,8 +89,8 @@
                                 
                                 {{-- Delete Button --}}
                                 <button type="button" 
-                                        @click="deleteSubmission('{{ $sub->uuid }}', '{{ addslashes($sub->user->name) }}')"
-                                        class="p-2 text-slate-300 dark:text-slate-600 hover:text-[#E2231A] dark:hover:text-rose-400 hover:bg-red-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors group/del transition-colors">
+                                        @click="deleteSubmission('{{ $sub->uuid }}', '{{ addslashes($sub->user->name ?? 'Unknown Student') }}')"
+                                        class="p-2 text-slate-300 dark:text-slate-600 hover:text-[#E2231A] dark:hover:text-rose-400 hover:bg-red-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors group/del">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                     </svg>
@@ -106,7 +106,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-6 py-20 text-center text-slate-400 dark:text-slate-600 italic transition-colors transition-colors">
+                    <td colspan="5" class="px-6 py-20 text-center text-slate-400 dark:text-slate-600 italic transition-colors">
                         <div class="flex flex-col items-center gap-2">
                             <svg class="w-12 h-12 text-slate-200 dark:text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             No submissions yet for this exam.

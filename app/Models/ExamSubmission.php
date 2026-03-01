@@ -11,6 +11,7 @@ class ExamSubmission extends Model
     protected $casts = [
         'answers_snapshot' => 'array',
         'started_at' => 'datetime',
+        'updated_at' => 'datetime',
         'created_at' => 'datetime',
     ];
 

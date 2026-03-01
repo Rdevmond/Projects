@@ -35,21 +35,32 @@
         <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-t-4 border-t-[#005073] dark:border-t-[#00bceb] shadow-sm p-10 mb-10 transition-colors">
             <input type="text" name="exam_title" required
                 value="{{ $exam->title ?? '' }}"
-                class="text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full border-b-2 border-slate-100 dark:border-slate-700 bg-transparent focus:border-[#E2231A] dark:focus:border-rose-400 focus:outline-none transition-all mb-4 placeholder-slate-200 dark:placeholder-slate-700">
+                class="text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full border-b-2 border-slate-100 dark:border-slate-700 bg-transparent focus:border-[#E2231A] dark:focus:border-rose-400 focus:outline-none transition-all mb-4 placeholder-slate-400 dark:placeholder-slate-500"
+                placeholder="Enter Exam Title...">
 
             <input type="text" name="exam_description"
                 value="{{ $exam->description ?? '' }}"
-                class="text-lg text-slate-500 dark:text-slate-400 w-full border-none bg-transparent focus:ring-0 placeholder-slate-200 dark:placeholder-slate-700 transition-colors"
+                class="text-lg text-slate-500 dark:text-slate-400 w-full border-none bg-transparent focus:ring-0 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                 placeholder="Add a detailed description for this exam...">
 
             <div class="mt-4 flex items-center gap-4">
                 <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
                     <svg class="w-5 h-5 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <input type="number" name="duration" value="{{ $exam->duration ?? '' }}" min="1"
-                        class="bg-transparent border-none p-0 w-24 text-sm font-bold text-slate-700 dark:text-slate-300 focus:ring-0 placeholder-slate-300 dark:placeholder-slate-700"
+                        class="bg-transparent border-none p-0 w-24 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder-slate-400 dark:placeholder-slate-500"
                         placeholder="Duration">
                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase transition-colors">Minutes</span>
                 </div>
+
+                {{-- Randomize Toggle --}}
+                <label class="flex items-center gap-3 cursor-pointer group bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
+                    <div class="relative w-10 h-5 flex items-center">
+                        <input type="checkbox" name="randomize_questions" value="1" class="sr-only peer">
+                        <div class="w-full h-full bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-[#00bceb] transition-colors"></div>
+                        <div class="absolute left-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 uppercase tracking-widest transition-colors">Randomize Order</span>
+                </label>
             </div>
 
             {{-- User Assignment Section (DYNAMIC) --}}
@@ -69,7 +80,7 @@
                     <div class="flex flex-wrap items-center gap-3">
                         <div class="relative">
                             <input type="text" x-model="studentSearch" placeholder="Search school or student..." 
-                                   class="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:border-[#00bceb] focus:ring-4 focus:ring-[#00bceb]/5 transition-all w-full md:w-60">
+                                   class="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:border-[#00bceb] focus:ring-4 focus:ring-[#00bceb]/5 transition-all w-full md:w-60 placeholder-slate-400 dark:placeholder-slate-500">
                             <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
                         
@@ -93,7 +104,7 @@
                                  class="flex items-center justify-between px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all group transition-colors">
                                 <div class="flex flex-col">
                                     <span class="text-xs font-black" x-text="student.name"></span>
-                                    <span :class="selectedStudentIds.includes(student.id) ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400 dark:text-slate-500'" 
+                                    <span :class="selectedStudentIds.includes(student.id) ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400'" 
                                           class="text-[9px] font-bold uppercase tracking-widest transition-colors" x-text="student.school"></span>
                                 </div>
                                 <div :class="selectedStudentIds.includes(student.id) ? 'bg-white dark:bg-slate-900 text-[#005073] dark:text-[#00bceb]' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-600'"
@@ -143,7 +154,7 @@
                                 <span class="text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] transition-colors">Question Text</span>
                             </div>
                             <input type="text" :name="`questions[${index}][text]`" required x-model="question.text"
-                                class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent rounded-2xl p-4 text-lg font-bold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:ring-0 transition-all placeholder-slate-300 dark:placeholder-slate-700"
+                                class="w-full bg-slate-100 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-4 text-lg font-bold text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:ring-0 transition-all placeholder-slate-400 dark:placeholder-slate-500"
                                 placeholder="Type your question here...">
                         </div>
 
@@ -172,6 +183,7 @@
                             <span x-text="preview || (question.context_image_path) ? 'CHANGE IMAGE' : 'ADD CONTEXT IMAGE'"></span>
                             <input type="file" :name="`questions[${index}][context_image]`" class="hidden"
                                    @change="preview = URL.createObjectURL($event.target.files[0])">
+                            <input type="hidden" :name="`questions[${index}][context_image_path]`" x-model="question.context_image_path">
                         </label>
 
                         <div class="relative" x-show="preview || question.context_image_path">
@@ -197,7 +209,7 @@
                                     {{-- OPTION KEY BADGE --}}
                                     <label class="relative flex flex-col items-center justify-center w-12 h-12 rounded-xl cursor-pointer transition-all duration-300 transition-colors"
                                            :class="opt.is_correct ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-800' : 'bg-slate-100 dark:bg-slate-900 text-slate-300 dark:text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-400 dark:hover:text-slate-600'">
-                                        <input type="checkbox" :name="`questions[${index}][correct][]`" :value="optIndex"
+                                        <input type="checkbox" :name="`questions[${index}][options][${optIndex}][is_correct]`" value="1"
                                             :checked="opt.is_correct"
                                             x-model="opt.is_correct"
                                             class="absolute opacity-0 w-full h-full cursor-pointer">
@@ -207,7 +219,7 @@
 
                                     <div class="grow">
                                         <input type="text" :name="`questions[${index}][options][${optIndex}][text]`" x-model="opt.text"
-                                            class="w-full border-none bg-transparent focus:ring-0 p-0 text-sm font-bold text-slate-700 dark:text-slate-300 placeholder-slate-300 dark:placeholder-slate-700 transition-colors"
+                                            class="w-full border-none bg-transparent focus:ring-0 p-0 text-sm font-black text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                                             placeholder="Option content...">
                                     </div>
 
@@ -222,6 +234,7 @@
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                             <input type="file" :name="`questions[${index}][options][${optIndex}][file]`" class="hidden"
                                                    @change="optPreview = URL.createObjectURL($event.target.files[0])">
+                                            <input type="hidden" :name="`questions[${index}][options][${optIndex}][image]`" x-model="opt.image">
                                         </label>
 
                                         <button type="button" @click="removeOption(index, optIndex)" class="p-2 text-slate-300 hover:text-[#E2231A] transition-colors">
@@ -232,7 +245,7 @@
                             </template>
 
                             <button type="button" @click="addOption(index)" class="flex items-center gap-2 text-[10px] font-black text-[#E2231A] uppercase tracking-[0.2em] pt-2 ml-4 hover:text-[#005073] transition-colors">
-                                <span class="bg-[#E2231A] text-white rounded-md w-5 h-5 flex items-center justify-center shadow-sm text-lg">+</span>
+                                <span class="bg-[#E2231A] text-white rounded-md w-5 h-5 flex items-center justify-center shadow-sm text-lg leading-none pb-0.5 transition-colors">+</span>
                                 Add Choice
                             </button>
                         </div>
@@ -347,9 +360,10 @@ function examBuilder(allStudents, assignedIds) {
             id: Date.now(),
             type: 'option',
             text: '',
-            options: [{text: ''}, {text: ''}],
+            options: [{text: '', is_correct: false, image: null}, {text: '', is_correct: false, image: null}],
             pairs: [{left: '', right: ''}],
-            is_required: true
+            is_required: true,
+            context_image_path: null
         }];
     }
 
@@ -388,9 +402,10 @@ function examBuilder(allStudents, assignedIds) {
                 id: Date.now(),
                 type: 'option',
                 text: '',
-                options: [{text: ''}, {text: ''}],
+                options: [{text: '', is_correct: false, image: null}, {text: '', is_correct: false, image: null}],
                 pairs: [{left: '', right: ''}],
-                is_required: true
+                is_required: true,
+                context_image_path: null
             });
             setTimeout(() => window.scrollTo({ top: document.body.scrollHeight + 200, behavior: 'smooth' }), 100);
         },
@@ -409,7 +424,7 @@ function examBuilder(allStudents, assignedIds) {
                 this.questions[index + 1] = temp;
             }
         },
-        addOption(qIndex) { this.questions[qIndex].options.push({text: ''}); },
+        addOption(qIndex) { this.questions[qIndex].options.push({text: '', is_correct: false, image: null}); },
         removeOption(qIndex, oIndex) { this.questions[qIndex].options.splice(oIndex, 1); },
         addPair(qIndex) { this.questions[qIndex].pairs.push({left: '', right: ''}); },
         removePair(qIndex, pIndex) { this.questions[qIndex].pairs.splice(pIndex, 1); }
@@ -419,7 +434,8 @@ function examBuilder(allStudents, assignedIds) {
 
 <style>
     input:focus { outline: none !important; }
-    input::placeholder { color: #cbd5e1; font-weight: 700; opacity: 0.5; }
+    input::placeholder { color: #64748b; font-weight: 700; opacity: 1; }
+    .dark input::placeholder { color: #94a3b8; opacity: 1; }
     [x-cloak] { display: none !important; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
