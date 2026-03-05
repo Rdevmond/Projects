@@ -10,6 +10,9 @@ class ExamForm extends Model
 
     protected $casts = [
         'randomize_questions' => 'boolean',
+        'current_step' => 'integer',
+        'duration_mode' => 'string',
+        'duration' => 'float',
     ];
 
     public function questions()

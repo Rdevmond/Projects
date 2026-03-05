@@ -7,10 +7,42 @@
         <p class="text-slate-400 dark:text-slate-500 mt-3 text-xl font-medium transition-colors">{{ $exam->description }}</p>
     </div>
 
-    <form id="exam-form" action="{{ route('exam.submit', $exam) }}" method="POST">
+    <form id="exam-form" 
+          action="{{ route('exam.submit', $exam) }}" 
+          method="POST" 
+          x-data="{ 
+              mode: '{{ $exam->exam_mode }}',
+              currentStep: {{ Auth::user()->submissions()->where('exam_form_id', $exam->id)->first()->current_step ?? 0 }},
+              totalQuestions: {{ $exam->questions->count() }},
+              nextStep() {
+                  if (this.currentStep < this.totalQuestions - 1) {
+                      this.currentStep++;
+                      this.updateStep();
+                      window.dispatchEvent(new CustomEvent('step-changed', { detail: { step: this.currentStep } }));
+                  }
+              },
+              async updateStep() {
+                  try {
+                      await fetch('{{ route('exam.update-step', $exam) }}', {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json',
+                              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                          },
+                          body: JSON.stringify({ step: this.currentStep })
+                      });
+                  } catch (e) {
+                      console.error('Failed to sync progress:', e);
+                  }
+              }
+          }">
         @csrf
         @foreach($exam->questions as $index => $q)
-            <div class="bg-white dark:bg-slate-800 p-8 rounded-[3rem] shadow-sm border border-slate-200 dark:border-slate-700 mb-8 transition-colors">
+            <div x-show="mode === 'normal' || currentStep === {{ $index }}"
+                 x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="opacity-0 translate-x-12"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 class="bg-white dark:bg-slate-800 p-8 rounded-[3rem] shadow-sm border border-slate-200 dark:border-slate-700 mb-8 transition-colors">
                 <div class="flex items-center gap-3 mb-6">
                     <span class="px-4 py-1.5 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest">Q-{{ $index + 1 }}</span>
                     <span class="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest transition-colors">{{ $q->type }}</span>
@@ -84,9 +116,19 @@
             </div>
         @endforeach
 
-        <button type="button" @click="confirmSubmission()" class="w-full bg-slate-900 text-white py-6 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-blue-600 transition-all transform hover:-translate-y-1">
-            SUBMIT EXAM
-        </button>
+        <div class="flex gap-4">
+            <template x-if="mode === 'sequential' && currentStep < totalQuestions - 1">
+                <button type="button" @click="nextStep()" class="w-full bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 py-6 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-[#003e5c] transition-all transform hover:-translate-y-1">
+                    NEXT QUESTION
+                </button>
+            </template>
+            
+            <template x-if="mode === 'normal' || currentStep === totalQuestions - 1">
+                <button type="button" @click="confirmSubmission()" class="w-full bg-slate-900 text-white py-6 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-blue-600 transition-all transform hover:-translate-y-1">
+                    SUBMIT EXAM
+                </button>
+            </template>
+        </div>
     </form>
 </div>
 
@@ -112,11 +154,15 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // TIMER LOGIC
-    const durationMinutes = {{ $exam->duration ?? 0 }};
+    const durationMode = '{{ $exam->duration_mode }}';
+    const globalDurationVal = {{ $exam->duration ?? 0 }};
+    const questions = @json($exam->questions);
     const form = document.getElementById('exam-form');
     let fiveMinWarningShown = false;
+    let questionTimerInterval = null;
     
-    if (durationMinutes > 0) {
+    // Global Timer Version (Normal Mode or Global Duration Mode)
+    if (globalDurationVal > 0 && durationMode === 'global') {
         const timerKey = 'exam_start_' + '{{ $exam->uuid }}';
         let startTime = localStorage.getItem(timerKey);
         
@@ -125,17 +171,15 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem(timerKey, startTime);
         }
 
-        const endTime = parseInt(startTime) + (durationMinutes * 60 * 1000);
+        const endTime = parseInt(startTime) + (globalDurationVal * 60 * 1000);
 
-        function updateTimer() {
+        function updateGlobalTimer() {
             const now = Date.now();
             const distance = endTime - now;
 
             if (distance < 0) {
-                // Time's up - auto submit
                 document.getElementById('countdown-display').innerHTML = "TIME UP!";
                 localStorage.removeItem(timerKey);
-                // Remove beforeunload to allow auto-submit
                 window.onbeforeunload = null;
                 form.submit();
                 return;
@@ -149,31 +193,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 (seconds < 10 ? "0" + seconds : seconds);
             
             const timerBar = document.getElementById('timer-bar');
-            
-            // 10 seconds warning - pulse animation
             if (distance <= 10000) {
-                timerBar.classList.add('animate-pulse');
-                timerBar.classList.add('bg-[#E2231A]/90');
-                timerBar.classList.remove('bg-slate-900/90', 'bg-[#FF9E18]/90');
-            }
-            // Last minute warning - orange
-            else if (minutes === 0) {
+                timerBar.classList.add('animate-pulse', 'bg-[#E2231A]/90');
+                timerBar.classList.remove('bg-slate-900/90');
+            } else if (minutes === 0) {
                 timerBar.classList.add('bg-[#FF9E18]/90');
                 timerBar.classList.remove('bg-slate-900/90');
             }
-            // 5 minute warning - show toast once
-            else if (minutes === 4 && seconds === 59 && !fiveMinWarningShown) {
-                fiveMinWarningShown = true;
-                notify('Please stay focused. Proceed with caution.', '5 Minutes Remaining!', 'warning');
-            }
         }
 
-        setInterval(updateTimer, 1000);
-        updateTimer();
-        
-        // Clear timer and beforeunload on manual submit
-        form.addEventListener('submit', function() {
-             localStorage.removeItem(timerKey);
+        setInterval(updateGlobalTimer, 1000);
+        updateGlobalTimer();
+    } 
+    // Per-Question Timer Version
+    else if (durationMode === 'per_question') {
+        function startQuestionTimer(stepIndex) {
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
+            
+            const q = questions[stepIndex];
+            // If question has no override, use global duration (which is in minutes) converted to seconds
+            const qSeconds = q.duration || (globalDurationVal * 60); 
+            
+            if (!qSeconds) {
+                document.getElementById('countdown-display').innerHTML = "∞";
+                return;
+            }
+
+            let timeLeft = qSeconds;
+            
+            function updateQTimer() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                document.getElementById('countdown-display').innerHTML = 
+                    (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+                    (seconds < 10 ? "0" + seconds : seconds);
+                
+                const timerBar = document.getElementById('timer-bar');
+                if (timeLeft <= 5) {
+                    timerBar.classList.add('animate-pulse', 'bg-[#E2231A]/90');
+                    timerBar.classList.remove('bg-slate-900/90');
+                } else {
+                    timerBar.classList.remove('animate-pulse', 'bg-[#E2231A]/90');
+                    timerBar.classList.add('bg-slate-900/90');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(questionTimerInterval);
+                    const alpineData = document.querySelector('[x-data]').__x.$data;
+                    if (alpineData.currentStep < alpineData.totalQuestions - 1) {
+                        alpineData.nextStep();
+                    } else {
+                        window.onbeforeunload = null;
+                        form.submit();
+                    }
+                }
+                timeLeft--;
+            }
+
+            questionTimerInterval = setInterval(updateQTimer, 1000);
+            updateQTimer();
+        }
+
+        // Initialize first timer
+        const initialStep = {{ Auth::user()->submissions()->where('exam_form_id', $exam->id)->first()->current_step ?? 0 }};
+        startQuestionTimer(initialStep);
+
+        // Hook into Alpine step changes
+        window.addEventListener('step-changed', (e) => {
+            startQuestionTimer(e.detail.step);
         });
     }
 

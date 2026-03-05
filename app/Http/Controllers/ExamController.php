@@ -70,7 +70,9 @@ class ExamController extends Controller
             'title' => $request->input('exam_title'),
             'description' => $request->input('exam_description'),
             'duration' => $request->input('duration'),
+            'duration_mode' => $request->input('duration_mode', 'global'),
             'randomize_questions' => $request->has('randomize_questions'),
+            'exam_mode' => $request->input('exam_mode', 'normal'),
             'status' => 'active',
         ]);
 
@@ -103,7 +105,9 @@ class ExamController extends Controller
             'title' => $request->input('exam_title'),
             'description' => $request->input('exam_description'),
             'duration' => $request->input('duration'),
+            'duration_mode' => $request->input('duration_mode', 'global'),
             'randomize_questions' => $request->has('randomize_questions'),
+            'exam_mode' => $request->input('exam_mode', 'normal'),
         ]);
 
         // Hapus soal lama, lalu simpan ulang (untuk handle re-ordering/hapus-tambah soal di Alpine.js)
@@ -185,12 +189,12 @@ class ExamController extends Controller
                 $answerDetails = ['allow_attachments' => isset($qData['essay_allow_attachment'])];
             }
 
-            ExamQuestion::create([
-                'exam_form_id' => $exam->id,
+            $exam->questions()->create([
                 'question_text' => $qData['text'] ?? 'Untitled Question',
                 'type' => $type,
                 'context_image_path' => $contextImagePath,
-                'is_required' => isset($qData['required']),
+                'is_required' => isset($qData['is_required']),
+                'duration' => isset($qData['duration']) ? (int)($qData['duration'] * 60) : null,
                 'answer_details' => $answerDetails,
             ]);
         }
@@ -222,6 +226,25 @@ class ExamController extends Controller
             ->get();
 
         return view('admin.specs', compact('exam', 'submissions'));
+    }
+
+    /**
+     * STUDENT: Update current step for sequential exams
+     */
+    public function updateStep(Request $request, ExamForm $exam)
+    {
+        $submission = ExamSubmission::where('user_id', Auth::id())
+            ->where('exam_form_id', $exam->id)
+            ->where('status', 'in_progress')
+            ->first();
+
+        if ($submission) {
+            $submission->update([
+                'current_step' => $request->input('step', 0)
+            ]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     /**

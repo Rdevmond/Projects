@@ -60,6 +60,7 @@ Route::middleware(['auth', 'student'])->group(function () {
     Route::get('/exam-list', [ExamController::class, 'studentIndex'])->name('student.exams');
     Route::get('/exam/{exam}/confirm', [ExamController::class, 'showConfirmation'])->name('exam.confirm');
     Route::post('/exam/{exam}/start', [ExamController::class, 'startExam'])->name('exam.start');
+    Route::post('/exam/{exam}/update-step', [ExamController::class, 'updateStep'])->name('exam.update-step');
     Route::post('/submit-exam/{exam}', [ExamController::class, 'submit'])->name('exam.submit');
     Route::get('/exam-result/{submission}', [ExamController::class, 'showResult'])->name('student.result');
 });
