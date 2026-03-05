@@ -1,338 +1,524 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="examBuilder({{ $exam->questions->toJson() }})" class="max-w-5xl mx-auto py-12 px-4 transition-colors" x-cloak>
-    <form action="{{ route('admin.exams.update', $exam) }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
+@php
+ $allStudents = \App\Models\User::where('role', 0)->orderBy('name')->get()->map(function($s) {
+ return [
+ 'id' => $s->id,
+ 'name' => $s->name,
+ 'school' => $s->school ?? 'General'
+ ];
+ });
+ $assignedUserIds = $exam->assignedUsers->pluck('id')->toArray();
+@endphp
 
-        {{-- Header Card --}}
-        <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-4 border-t-[#005073] dark:border-t-[#00bceb] shadow-sm p-10 mb-10 transition-colors">
-            <div class="flex justify-between items-center mb-6">
-                <span class="px-4 py-1.5 bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-colors">Edit Mode</span>
-                <a href="{{ route('admin.dashboard') }}" class="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-[#E2231A] dark:hover:text-rose-400 uppercase tracking-widest transition-colors">
-                    ✕ Cancel Changes
-                </a>
-            </div>
+<div x-data="examBuilder({{ $exam->questions->toJson() }}, {{ $allStudents->toJson() }}, {{ json_encode($assignedUserIds) }}, '{{ $exam->exam_mode ?? 'normal' }}', '{{ $exam->duration_mode ?? 'global' }}')" class="max-w-5xl mx-auto py-12 px-4 transition-colors" x-cloak>
+ <form action="{{ route('admin.exams.update', $exam) }}" method="POST" enctype="multipart/form-data">
+ @csrf
+ @method('PUT')
 
-            <input type="text" name="exam_title" value="{{ $exam->title }}" required
-                class="text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full bg-transparent border-b-2 border-slate-100 dark:border-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:outline-none mb-4 pb-2 transition-all placeholder-slate-200 dark:placeholder-slate-700 transition-colors"
-                placeholder="Exam Title">
+ {{-- Header Card --}}
+ <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-4 border-t-[#005073] dark:border-t-[#00bceb] shadow-sm p-10 mb-10 transition-colors">
+ <div class="flex justify-between items-center mb-6">
+ <span class="px-4 py-1.5 bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-colors">Edit Mode</span>
+ <a href="{{ route('admin.dashboard') }}" class="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-[#E2231A] dark:hover:text-rose-400 uppercase tracking-widest transition-colors">
+ ✖ Cancel Changes
+ </a>
+ </div>
 
-            <input type="text" name="exam_description" value="{{ $exam->description }}"
-                class="text-lg text-slate-400 dark:text-slate-500 w-full bg-transparent border-none focus:ring-0 p-0 transition-colors"
-                placeholder="No description provided...">
+ <input type="text" name="exam_title" value="{{ $exam->title }}" required
+ class="text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:outline-none mb-4 pb-2 transition-all placeholder-slate-400 dark:placeholder-slate-500"
+ placeholder="Enter Exam Title...">
 
-            <div class="mt-4 flex items-center gap-4">
-                <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
-                    <svg class="w-5 h-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <input type="number" name="duration" value="{{ $exam->duration }}" min="1"
-                        class="bg-transparent border-none p-0 w-24 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder-slate-300 dark:placeholder-slate-600 transition-colors"
-                        placeholder="Duration">
-                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase transition-colors">Minutes</span>
-                </div>
-            </div>
+ <input type="text" name="exam_description" value="{{ $exam->description }}"
+ class="text-lg text-slate-500 dark:text-slate-400 w-full bg-transparent border-none focus:ring-0 p-0 transition-colors placeholder-slate-400 dark:placeholder-slate-500"
+ placeholder="No description provided...">
 
-            {{-- User Assignment Section --}}
-            <div class="mt-6">
-                <label class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    Assign Students (Optional - Leave empty for all students)
-                </label>
-                <select name="assigned_users[]" multiple 
-                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-700 dark:text-slate-200 focus:border-[#00bceb] dark:focus:border-[#00bceb] focus:ring-0 transition-all"
-                        size="6">
-                    @foreach(\App\Models\User::where('role', 0)->orderBy('name')->get() as $student)
-                        <option value="{{ $student->id }}" 
-                                {{ $exam->assignedUsers->contains($student->id) ? 'selected' : '' }}
-                                class="py-1">
-                            {{ $student->name }} ({{ $student->email }})
-                        </option>
-                    @endforeach
-                </select>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 flex items-center gap-1 transition-colors">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Hold Ctrl/Cmd to select multiple students
-                </p>
-            </div>
-        </div>
-
-        {{-- Question Loop --}}
-        <template x-for="(question, index) in questions" :key="question.id || index">
-            <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm dark:shadow-black/40 border border-slate-200 dark:border-slate-800 mb-8 overflow-hidden transition-all hover:shadow-xl transition-colors">
-
-                <div class="p-8 pb-4">
-                    {{-- Grid Header: Text & Type --}}
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                        <div class="md:col-span-8">
-                            <div class="flex items-center gap-3 mb-3">
-                                <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-[#E2231A] dark:bg-rose-500 text-white text-xs font-black shadow-lg shadow-[#E2231A]/20 dark:shadow-none transition-colors" x-text="index + 1"></span>
-                                <span class="text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] transition-colors">Question Text</span>
-                            </div>
-                            <input type="text" :name="`questions[${index}][text]`" x-model="question.question_text" required
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl p-4 text-lg font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-700 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:ring-0 transition-all">
-                        </div>
-
-                        <div class="md:col-span-4 transition-colors">
-                            <div class="mb-3">
-                                <span class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] transition-colors">Type</span>
-                            </div>
-                            <div class="relative group">
-                                <select x-model="question.type" :name="`questions[${index}][type]`"
-                                    class="w-full bg-[#005073] dark:bg-[#00bceb] border-2 border-[#005073] dark:border-[#00bceb] rounded-2xl p-4 font-black text-white dark:text-slate-900 focus:bg-[#E2231A] dark:focus:bg-white focus:border-[#E2231A] dark:focus:border-white appearance-none cursor-pointer transition-all shadow-lg pr-12 transition-colors">
-                                    <option value="option" class="text-slate-900 dark:text-white bg-white dark:bg-slate-800">Multiple Choice</option>
-                                    <option value="connect" class="text-slate-900 dark:text-white bg-white dark:bg-slate-800">Matching Pairs</option>
-                                    <option value="essay" class="text-slate-900 dark:text-white bg-white dark:bg-slate-800">Essay / Manual</option>
-                                </select>
-                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/70 dark:text-slate-900/70 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Main Question Image --}}
-                    <div class="mt-6 flex flex-wrap items-end gap-6 transition-colors">
-                        <template x-if="question.context_image_path && !question.new_preview">
-                            <div class="relative">
-                                <p class="text-[9px] font-black text-[#005073] dark:text-[#00bceb] uppercase mb-1 tracking-widest transition-colors">Current Image:</p>
-                                <img :src="`/storage/${question.context_image_path}`" class="h-24 w-40 rounded-xl border-2 border-slate-100 dark:border-slate-800 object-cover shadow-sm bg-slate-50 dark:bg-slate-800 transition-colors">
-                            </div>
-                        </template>
-
-                        <template x-if="question.new_preview">
-                            <div class="relative">
-                                <p class="text-[9px] font-black text-[#E2231A] dark:text-rose-400 uppercase mb-1 tracking-widest transition-colors">New Upload:</p>
-                                <img :src="question.new_preview" class="h-24 w-40 rounded-xl border-2 border-[#E2231A] dark:border-rose-400 object-cover shadow-md transition-colors">
-                            </div>
-                        </template>
-
-                        <label class="inline-flex items-center gap-3 px-5 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#005073] dark:text-[#00bceb] rounded-xl text-[10px] font-black cursor-pointer border border-slate-200 dark:border-slate-700 transition-all mb-1 transition-colors">
-                            <span x-text="question.context_image_path || question.new_preview ? 'CHANGE QUESTION IMAGE' : 'ADD IMAGE'"></span>
-                            <input type="file" :name="`questions[${index}][context_image]`" class="hidden"
-                                   @change="question.new_preview = URL.createObjectURL($event.target.files[0])">
-                        </label>
-                    </div>
-                </div>
-
-                {{-- Answers Container --}}
-                <div class="px-8 pb-8 pt-2">
-                    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-4xl border-2 border-slate-100 dark:border-slate-800 p-6 shadow-inner transition-colors">
-
-                        {{-- Multiple Choice Section --}}
-                        <div x-show="question.type === 'option'" class="space-y-3">
-                            <template x-for="(opt, optIndex) in question.answer_details.options" :key="optIndex">
-                                <div class="flex items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group hover:border-[#00bceb]/50 transition-colors"
-                                     x-data="{ optPreview: null }">
-
-                                    {{-- OPTION KEY BADGE --}}
-                                    <label class="relative flex flex-col items-center justify-center w-12 h-12 rounded-xl cursor-pointer transition-all duration-300 transition-colors"
-                                           :class="opt.is_correct ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-400 dark:hover:text-slate-400'">
-                                        <input type="checkbox" :name="`questions[${index}][correct][]`" :value="optIndex" :checked="opt.is_correct"
-                                               x-model="opt.is_correct"
-                                               class="absolute opacity-0 w-full h-full cursor-pointer">
-                                        
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                                    </label>
-
-                                    <div class="grow">
-                                        <input type="text" :name="`questions[${index}][options][${optIndex}][text]`" x-model="opt.text"
-                                            class="w-full border-none bg-transparent focus:ring-0 p-0 text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors" placeholder="Option text...">
-                                    </div>
-
-                                    {{-- OPTION IMAGE LOGIC --}}
-                                    <div class="flex items-center gap-3 pr-2 transition-colors">
-                                        <div x-show="optPreview || opt.image" class="relative">
-                                            <img :src="optPreview || '/storage/' + opt.image"
-                                                 class="h-10 w-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shadow-sm transition-colors">
-                                            <button type="button" x-show="optPreview" @click="optPreview = null"
-                                                    class="absolute -top-1 -right-1 bg-black text-white rounded-full p-0.5 shadow-lg">
-                                                <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="4"></path></svg>
-                                            </button>
-                                        </div>
-
-                                        <label class="p-2 text-slate-400 dark:text-slate-500 hover:text-[#005073] dark:hover:text-[#00bceb] cursor-pointer transition-colors bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 transition-colors">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                            <input type="file" :name="`questions[${index}][options][${optIndex}][file]`" class="hidden"
-                                                   @change="optPreview = URL.createObjectURL($event.target.files[0])">
-                                        </label>
-
-                                        <button type="button" @click="removeOption(index, optIndex)" class="p-2 text-slate-300 dark:text-slate-600 hover:text-[#E2231A] dark:hover:text-rose-400 transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
-                            <button type="button" @click="addOption(index)" class="flex items-center gap-2 text-[10px] font-black text-[#E2231A] dark:text-rose-400 uppercase tracking-[0.2em] pt-2 ml-4 transition-colors">
-                                <span class="bg-[#E2231A] dark:bg-rose-500 text-white rounded-md w-5 h-5 flex items-center justify-center text-lg transition-colors">+</span>
-                                Add Choice
-                            </button>
-                        </div>
-
-                        {{-- Matching Pairs Section --}}
-                        <div x-show="question.type === 'connect'" class="space-y-3">
-                            <template x-for="(pair, pairIndex) in question.answer_details.pairs" :key="pairIndex">
-                                <div class="flex items-center gap-4 transition-colors">
-                                    <input type="text" :name="`questions[${index}][pairs][${pairIndex}][left]`" x-model="pair.left"
-                                        class="flex-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold shadow-sm dark:shadow-none text-slate-700 dark:text-slate-200 transition-colors" placeholder="Left Side">
-                                    <div class="text-[#E2231A] dark:text-rose-400 transition-colors">➔</div>
-                                    <input type="text" :name="`questions[${index}][pairs][${pairIndex}][right]`" x-model="pair.right"
-                                        class="flex-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold shadow-sm dark:shadow-none text-slate-700 dark:text-slate-200 transition-colors" placeholder="Right Side">
-                                    <button type="button" @click="removePair(index, pairIndex)" class="text-slate-300 dark:text-slate-600 hover:text-[#E2231A] dark:hover:text-rose-400 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
-                                </div>
-                            </template>
-                            <button type="button" @click="addPair(index)" class="text-[10px] font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] mt-2 transition-colors">+ Add Pair</button>
-                        </div>
-
-                        {{-- Essay Section --}}
-                        <div x-show="question.type === 'essay'" class="text-center py-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 transition-colors">
-                            <p class="text-slate-400 dark:text-slate-500 text-xs font-bold italic transition-colors">Manual grading required.</p>
-                        </div>
-                    </div>
-                </div>
-
-
-
-                {{-- Footer: Actions --}}
-                <div class="bg-slate-50 dark:bg-slate-800 px-10 py-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800/50 transition-colors duration-300">
-                    <div class="flex items-center gap-4 transition-colors">
-                        <label class="flex items-center gap-3 cursor-pointer group">
-                            <div class="relative w-10 h-5 flex items-center">
-                                <input type="checkbox" :name="`questions[${index}][required]`" :checked="question.is_required" class="sr-only peer">
-                                <div class="w-full h-full bg-[#002e44] dark:bg-slate-900 rounded-full peer peer-checked:bg-[#E2231A] dark:peer-checked:bg-rose-500 transition-colors"></div>
-                                <div class="absolute left-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                            </div>
-                            <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 group-hover:text-[#005073] dark:group-hover:text-[#00bceb] uppercase tracking-widest transition-colors">Required</span>
-                        </label>
-
-                        {{-- Reorder Buttons --}}
-                        <div class="flex items-center bg-white dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800 transition-colors">
-                            <button type="button" @click="moveUp(index)" :disabled="index === 0"
-                                class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-[#005073] dark:hover:text-[#00bceb] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition disabled:opacity-30 disabled:hover:bg-transparent transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
-                            </button>
-                            <button type="button" @click="moveDown(index)" :disabled="index === questions.length - 1"
-                                class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-[#005073] dark:hover:text-[#00bceb] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition disabled:opacity-30 disabled:hover:bg-transparent transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="button" @click="removeQuestion(index)" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-rose-300 dark:text-rose-500 hover:text-white dark:hover:text-rose-400 transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </template>
-
-        {{-- Add Question Button --}}
-        <div class="mb-12 transition-colors">
-            <button type="button" @click="addQuestion()" class="w-full py-12 bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem] text-slate-300 dark:text-slate-700 font-black uppercase tracking-[0.4em] hover:bg-[#f8fafc] dark:hover:bg-slate-800 hover:border-[#E2231A] dark:hover:border-[#00bceb] hover:text-[#E2231A] dark:hover:text-[#00bceb] transition-all shadow-sm group transition-colors">
-                <span class="inline-block group-hover:animate-bounce">+ Add Question Node</span>
+    <div class="mt-4 flex flex-wrap items-center gap-6">
+        {{-- Styled Exam Mode Selection --}}
+        <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 transition-colors">
+            <input type="hidden" name="exam_mode" :value="mode">
+            <button type="button" @click="mode = 'normal'" 
+                    :class="mode === 'normal' ? 'bg-white dark:bg-slate-800 text-[#005073] dark:text-[#00bceb] shadow-sm ring-1 ring-slate-200 dark:ring-slate-700' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                Normal
+            </button>
+            <button type="button" @click="mode = 'sequential'" 
+                    :class="mode === 'sequential' ? 'bg-[#E2231A] text-white shadow-lg shadow-[#E2231A]/20' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                Sequential
             </button>
         </div>
 
-        {{-- Action Bar (Static) --}}
-        <div class="w-full transition-colors">
-            <div class="bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 border-b-8 border-b-[#E2231A] dark:border-b-[#00bceb] rounded-full p-4 flex items-center justify-between shadow-2xl transition-colors duration-300">
-                <div class="pl-6 text-slate-400 dark:text-slate-600">
-                    <span class="block text-[8px] font-black uppercase tracking-widest leading-none mb-1">Total nodes</span>
-                    <span class="text-xl font-black leading-none text-slate-800 dark:text-white" x-text="questions.length"></span>
-                </div>
-                <button type="submit" class="bg-[#E2231A] dark:bg-[#00bceb] hover:bg-[#E2231A] dark:hover:bg-[#00bceb] text-white dark:text-slate-900 px-10 py-4 rounded-full font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95 transition-colors">
-                    Update Exam Data
-                </button>
+        {{-- Duration Mode Selection --}}
+        <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 transition-colors">
+            <input type="hidden" name="duration_mode" :value="durMode">
+            <button type="button" @click="durMode = 'global'" 
+                    :class="durMode === 'global' ? 'bg-white dark:bg-slate-800 text-[#005073] dark:text-[#00bceb] shadow-sm ring-1 ring-slate-200 dark:ring-slate-700' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Global Time
+            </button>
+            <button type="button" @click="durMode = 'per_question'" 
+                    :class="durMode === 'per_question' ? 'bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 shadow-lg' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Per-Question
+            </button>
+        </div>
+
+        {{-- Duration Input (Contextual) --}}
+        <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
+            <input type="number" name="duration" value="{{ $exam->duration }}" min="0.1" step="0.1"
+                   class="bg-transparent border-none p-0 w-20 text-sm font-bold text-slate-700 dark:text-slate-100 focus:ring-0 placeholder-slate-400 dark:placeholder-slate-500"
+                   placeholder="Value">
+            <div class="relative h-4 w-24 overflow-hidden">
+                <span class="absolute inset-0 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-all duration-300"
+                      x-show="durMode === 'global'"
+                      x-transition:enter="transition ease-out duration-300 transform"
+                      x-transition:enter-start="translate-y-4 opacity-0"
+                      x-transition:enter-end="translate-y-0 opacity-100"
+                      x-transition:leave="transition ease-in duration-300 transform"
+                      x-transition:leave-start="translate-y-0 opacity-100"
+                      x-transition:leave-end="-translate-y-4 opacity-0">
+                    Minutes
+                </span>
+                <span class="absolute inset-0 text-[10px] font-black text-[#E2231A] dark:text-rose-500 uppercase tracking-widest transition-all duration-300 italic"
+                      x-show="durMode === 'per_question'"
+                      x-transition:enter="transition ease-out duration-300 transform"
+                      x-transition:enter-start="translate-y-4 opacity-0"
+                      x-transition:enter-end="translate-y-0 opacity-100"
+                      x-transition:leave="transition ease-in duration-300 transform"
+                      x-transition:leave-start="translate-y-0 opacity-100"
+                      x-transition:leave-end="-translate-y-4 opacity-0">
+                    Minutes/Question
+                </span>
             </div>
         </div>
-    </form>
+
+ {{-- Randomize Toggle --}}
+ <label class="flex items-center gap-3 cursor-pointer group bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
+ <div class="relative w-10 h-5 flex items-center">
+ <input type="checkbox" name="randomize_questions" value="1" {{ ($exam->randomize_questions ?? false) ? 'checked' : '' }} class="sr-only peer">
+ <div class="w-full h-full bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-[#00bceb] transition-colors"></div>
+ <div class="absolute left-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+ </div>
+ <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 uppercase tracking-widest transition-colors">Randomize Order</span>
+ </label>
+ </div>
+
+ {{-- User Assignment Section (DYNAMIC) --}}
+ <div class="mt-8 p-8 bg-[#eefbff]/30 dark:bg-slate-900/50 rounded-4xl border-2 border-dashed border-[#00bceb]/20 dark:border-[#005073]/40 transition-colors">
+ <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+ <div>
+ <label class="text-[10px] font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] flex items-center gap-2 mb-1 transition-colors">
+ <div class="p-1.5 bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 rounded-lg shadow-md transition-colors">
+ <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+ </div>
+ Target Audience
+ </label>
+ <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest italic transition-colors">Optional: Leave empty for all students</span>
+ </div>
+
+ {{-- SEARCH & SORT CONTROLS --}}
+ <div class="flex flex-wrap items-center gap-3">
+ <div class="relative">
+ <input type="text" x-model="studentSearch" placeholder="Search school or student..." 
+ class="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:border-[#00bceb] focus:ring-4 focus:ring-[#00bceb]/5 transition-all w-full md:w-60 placeholder-slate-400 dark:placeholder-slate-500">
+ <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+ </div>
+ 
+ <div class="flex bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1 transition-colors">
+ <button type="button" @click="studentSort = 'name_asc'" 
+ :class="studentSort === 'name_asc' ? 'bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 border-[#005073] dark:border-[#00bceb]' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'"
+ class="px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all">A-Z</button>
+ <button type="button" @click="studentSort = 'school'" 
+ :class="studentSort === 'school' ? 'bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 border-[#005073] dark:border-[#00bceb]' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'"
+ class="px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all">School</button>
+ </div>
+ </div>
+ </div>
+ 
+ {{-- SELECTABLE LIST --}}
+ <div class="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-inner transition-colors">
+ <div class="max-h-60 overflow-y-auto custom-scrollbar p-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+ <template x-for="student in filteredStudents" :key="student.id">
+ <div @click="toggleStudent(student.id)" 
+ :class="selectedStudentIds.includes(student.id) ? 'bg-[#005073] dark:bg-[#00bceb] border-[#005073] dark:border-[#00bceb] text-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'"
+ class="flex items-center justify-between px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all group">
+ <div class="flex flex-col">
+ <span class="text-xs font-black" x-text="student.name"></span>
+ <span :class="selectedStudentIds.includes(student.id) ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400'" 
+ class="text-[9px] font-bold uppercase tracking-widest transition-colors" x-text="student.school"></span>
+ </div>
+ <div :class="selectedStudentIds.includes(student.id) ? 'bg-white dark:bg-slate-900 text-[#005073] dark:text-[#00bceb]' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-600'"
+ class="w-5 h-5 rounded-full flex items-center justify-center transition-colors">
+ <svg x-show="selectedStudentIds.includes(student.id)" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+ </div>
+ </div>
+ </template>
+ <div x-show="filteredStudents.length === 0" class="col-span-full py-10 text-center text-slate-300 dark:text-slate-700 italic text-xs font-bold transition-colors">
+ No students found matching your criteria.
+ </div>
+ </div>
+ </div>
+
+ {{-- HIDDEN INPUTS FOR FORM SUBMISSION --}}
+ <template x-for="id in selectedStudentIds">
+ <input type="hidden" name="assigned_users[]" :value="id">
+ </template>
+ 
+ <div class="mt-6 flex items-center justify-between px-2">
+ <div class="flex items-center gap-2">
+ <span class="text-[10px] font-black text-[#00bceb]" x-text="selectedStudentIds.length"></span>
+ <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Students Targeted</span>
+ </div>
+ <button type="button" x-show="selectedStudentIds.length > 0" @click="selectedStudentIds = []" 
+ class="text-[9px] font-black text-[#E2231A] uppercase tracking-widest hover:underline transition-colors focus:outline-none">Clear Selection</button>
+ </div>
+ </div>
+ </div>
+
+ {{-- Question Loop --}}
+ <template x-for="(question, index) in questions" :key="question.id || index">
+ <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm dark:shadow-black/40 border border-slate-200 dark:border-slate-800 mb-8 overflow-hidden transition-all hover:shadow-xl">
+
+ <div class="p-8 pb-4">
+ {{-- Grid Header: Text & Type --}}
+ <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+ <div class="md:col-span-8">
+ <div class="flex items-center gap-3 mb-3">
+ <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-[#E2231A] dark:bg-rose-500 text-white text-xs font-black shadow-lg shadow-[#E2231A]/20 dark:shadow-none transition-colors" x-text="index + 1"></span>
+ <span class="text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] transition-colors">Question Text</span>
+ </div>
+ <input type="text" :name="`questions[${index}][text]`" x-model="question.question_text" required
+ class="w-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-lg font-bold text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:border-[#E2231A] dark:focus:border-[#00bceb] focus:ring-0 transition-all placeholder-slate-400 dark:placeholder-slate-500">
+ </div>
+
+ <div class="md:col-span-4 transition-colors">
+ <div class="mb-3">
+ <span class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] transition-colors">Type</span>
+ </div>
+ <div class="relative group">
+ <select x-model="question.type" :name="`questions[${index}][type]`"
+ class="w-full bg-[#005073] dark:bg-[#00bceb] border-2 border-[#005073] dark:border-[#00bceb] rounded-2xl p-4 font-black text-white dark:text-slate-900 focus:bg-[#E2231A] dark:focus:bg-white focus:border-[#E2231A] dark:focus:border-white appearance-none cursor-pointer transition-all shadow-lg pr-12">
+ <option value="option" class="text-slate-900 dark:text-white bg-white dark:bg-slate-800">Multiple Choice</option>
+ <option value="connect" class="text-slate-900 dark:text-white bg-white dark:bg-slate-800">Matching Pairs</option>
+ <option value="essay" class="text-slate-900 dark:text-white bg-white dark:bg-slate-800">Essay / Manual</option>
+ </select>
+ <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/70 dark:text-slate-900/70 transition-colors">
+ <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {{-- Main Question Image & Duration --}}
+ <div class="mt-6 flex flex-wrap items-end gap-6 transition-colors">
+ <template x-if="question.context_image_path && !question.new_preview">
+ <div class="relative">
+ <p class="text-[9px] font-black text-[#005073] dark:text-[#00bceb] uppercase mb-1 tracking-widest transition-colors">Current Image:</p>
+ <img :src="`/storage/${question.context_image_path}`" class="h-24 w-40 rounded-xl border-2 border-slate-100 dark:border-slate-800 object-cover shadow-sm bg-slate-50 dark:bg-slate-800 transition-colors">
+ </div>
+ </template>
+
+ <template x-if="question.new_preview">
+ <div class="relative">
+ <p class="text-[9px] font-black text-[#E2231A] dark:text-rose-400 uppercase mb-1 tracking-widest transition-colors">New Upload:</p>
+ <img :src="question.new_preview" class="h-24 w-40 rounded-xl border-2 border-[#E2231A] dark:border-rose-400 object-cover shadow-md transition-colors">
+ </div>
+ </template>
+
+ <label class="inline-flex items-center gap-3 px-5 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#005073] dark:text-[#00bceb] rounded-xl text-[10px] font-black cursor-pointer border border-slate-200 dark:border-slate-700 transition-all mb-1">
+ <span x-text="question.context_image_path || question.new_preview ? 'CHANGE QUESTION IMAGE' : 'ADD IMAGE'"></span>
+ <input type="file" :name="`questions[${index}][context_image]`" class="hidden"
+ @change="question.new_preview = URL.createObjectURL($event.target.files[0])">
+ <input type="hidden" :name="`questions[${index}][context_image_path]`" x-model="question.context_image_path">
+ </label>
+
+    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mb-1"
+         x-show="durMode === 'per_question'"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+        <svg class="w-4 h-4 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <input type="number" :name="`questions[${index}][duration]`" x-model="question.duration" placeholder="Default" step="0.1"
+               class="bg-transparent border-none p-0 w-16 text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 focus:ring-0 placeholder-slate-300 dark:placeholder-slate-700 transition-colors">
+        <span class="text-[8px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">Min/Quest</span>
+    </div>
+ </div>
+
+ {{-- Answers Container --}}
+ <div class="px-8 pb-8 pt-2">
+ <div class="bg-slate-50 dark:bg-slate-800/50 rounded-4xl border-2 border-slate-100 dark:border-slate-800 p-6 shadow-inner transition-colors">
+
+ {{-- Multiple Choice Section --}}
+ <div x-show="question.type === 'option'" class="space-y-3">
+ <template x-for="(opt, optIndex) in question.answer_details.options" :key="optIndex">
+ <div class="flex items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group hover:border-[#00bceb]/50 transition-colors"
+ x-data="{ optPreview: null }">
+
+ {{-- OPTION KEY BADGE --}}
+ <label class="relative flex flex-col items-center justify-center w-12 h-12 rounded-xl cursor-pointer transition-all duration-300"
+ :class="opt.is_correct ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-400 dark:hover:text-slate-400'">
+ <input type="checkbox" :name="`questions[${index}][options][${optIndex}][is_correct]`" value="1" :checked="opt.is_correct"
+ x-model="opt.is_correct"
+ class="absolute opacity-0 w-full h-full cursor-pointer">
+ 
+ <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+ </label>
+
+ <div class="grow">
+ <input type="text" :name="`questions[${index}][options][${optIndex}][text]`" x-model="opt.text"
+ class="w-full border-none bg-transparent focus:ring-0 p-0 text-sm font-black text-slate-700 dark:text-slate-100 transition-colors placeholder-slate-400 dark:placeholder-slate-500" placeholder="Option text...">
+ </div>
+
+ {{-- OPTION IMAGE LOGIC --}}
+ <div class="flex items-center gap-3 pr-2 transition-colors">
+ <div x-show="optPreview || opt.image" class="relative">
+ <img :src="optPreview || '/storage/' + opt.image"
+ class="h-10 w-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shadow-sm transition-colors">
+ <button type="button" x-show="optPreview" @click="optPreview = null"
+ class="absolute -top-1 -right-1 bg-black text-white rounded-full p-0.5 shadow-lg">
+ <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="4"></path></svg>
+ </button>
+ </div>
+
+ <label class="p-2 text-slate-400 dark:text-slate-500 hover:text-[#005073] dark:hover:text-[#00bceb] cursor-pointer transition-colors bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
+ <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+ <input type="file" :name="`questions[${index}][options][${optIndex}][file]`" class="hidden"
+ @change="optPreview = URL.createObjectURL($event.target.files[0])">
+ <input type="hidden" :name="`questions[${index}][options][${optIndex}][image]`" x-model="opt.image">
+ </label>
+
+ <button type="button" @click="removeOption(index, optIndex)" class="p-2 text-slate-300 dark:text-slate-600 hover:text-[#E2231A] dark:hover:text-rose-400 transition-colors">
+ <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+ </button>
+ </div>
+ </div>
+ </template>
+ <button type="button" @click="addOption(index)" class="flex items-center gap-2 text-[10px] font-black text-[#E2231A] dark:text-rose-400 uppercase tracking-[0.2em] pt-2 ml-4 transition-colors">
+ <span class="bg-[#E2231A] dark:bg-rose-500 text-white rounded-md w-5 h-5 flex items-center justify-center text-lg leading-none pb-0.5 transition-colors">+</span>
+ Add Choice
+ </button>
+ </div>
+
+ {{-- Matching Pairs Section --}}
+ <div x-show="question.type === 'connect'" class="space-y-3">
+ <template x-for="(pair, pairIndex) in question.answer_details.pairs" :key="pairIndex">
+ <div class="flex items-center gap-4 transition-colors">
+ <input type="text" :name="`questions[${index}][pairs][${pairIndex}][left]`" x-model="pair.left"
+ class="flex-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold shadow-sm dark:shadow-none text-slate-700 dark:text-slate-200 transition-colors" placeholder="Left Side">
+ <div class="text-[#E2231A] dark:text-rose-400 transition-colors">➔</div>
+ <input type="text" :name="`questions[${index}][pairs][${pairIndex}][right]`" x-model="pair.right"
+ class="flex-1 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-bold shadow-sm dark:shadow-none text-slate-700 dark:text-slate-200 transition-colors" placeholder="Right Side">
+ <button type="button" @click="removePair(index, pairIndex)" class="text-slate-300 dark:text-slate-600 hover:text-[#E2231A] dark:hover:text-rose-400 transition-colors">
+ <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+ </button>
+ </div>
+ </template>
+ <button type="button" @click="addPair(index)" class="text-[10px] font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] mt-2 transition-colors">+ Add Pair</button>
+ </div>
+
+ {{-- Essay Section --}}
+ <div x-show="question.type === 'essay'" class="text-center py-6 bg-white/50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 transition-colors">
+ <p class="text-slate-400 dark:text-slate-500 text-xs font-bold italic transition-colors">Manual grading required.</p>
+ </div>
+ </div>
+ </div>
+
+
+
+ {{-- Footer: Actions --}}
+ <div class="bg-slate-50 dark:bg-slate-800 px-10 py-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800/50 transition-colors duration-300">
+ <div class="flex items-center gap-4 transition-colors">
+ <label class="flex items-center gap-3 cursor-pointer group">
+ <div class="relative w-10 h-5 flex items-center">
+ <input type="checkbox" :name="`questions[${index}][required]`" :checked="question.is_required" class="sr-only peer">
+ <div class="w-full h-full bg-[#002e44] dark:bg-slate-900 rounded-full peer peer-checked:bg-[#E2231A] dark:peer-checked:bg-rose-500 transition-colors"></div>
+ <div class="absolute left-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+ </div>
+ <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 group-hover:text-[#005073] dark:group-hover:text-[#00bceb] uppercase tracking-widest transition-colors">Required</span>
+ </label>
+
+ {{-- Reorder Buttons --}}
+ <div class="flex items-center bg-white dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800 transition-colors">
+ <button type="button" @click="moveUp(index)" :disabled="index === 0"
+ class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-[#005073] dark:hover:text-[#00bceb] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition disabled:opacity-30 disabled:hover:bg-transparent">
+ <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+ </button>
+ <button type="button" @click="moveDown(index)" :disabled="index === questions.length - 1"
+ class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-[#005073] dark:hover:text-[#00bceb] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition disabled:opacity-30 disabled:hover:bg-transparent">
+ <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+ </button>
+ </div>
+ </div>
+
+ <button type="button" @click="removeQuestion(index)" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-rose-300 dark:text-rose-500 hover:text-white dark:hover:text-rose-400 transition-all">
+ <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+ Delete
+ </button>
+ </div>
+ </div>
+ </template>
+
+ {{-- Add Question Button --}}
+ <div class="mb-12 transition-colors">
+ <button type="button" @click="addQuestion()" class="w-full py-12 bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem] text-slate-300 dark:text-slate-700 font-black uppercase tracking-[0.4em] hover:bg-[#f8fafc] dark:hover:bg-slate-800 hover:border-[#E2231A] dark:hover:border-[#00bceb] hover:text-[#E2231A] dark:hover:text-[#00bceb] transition-all shadow-sm group">
+ <span class="inline-block group-hover:animate-bounce">+ Add Question Node</span>
+ </button>
+ </div>
+
+ {{-- Action Bar (Static) --}}
+ <div class="w-full transition-colors">
+ <div class="bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 border-b-8 border-b-[#E2231A] dark:border-b-[#00bceb] rounded-full p-4 flex items-center justify-between shadow-2xl transition-colors duration-300">
+ <div class="pl-6 text-slate-400 dark:text-slate-600">
+ <span class="block text-[8px] font-black uppercase tracking-widest leading-none mb-1">Total nodes</span>
+ <span class="text-xl font-black leading-none text-slate-800 dark:text-white" x-text="questions.length"></span>
+ </div>
+ <button type="submit" class="bg-[#E2231A] dark:bg-[#00bceb] hover:bg-[#E2231A] dark:hover:bg-[#00bceb] text-white dark:text-slate-900 px-10 py-4 rounded-full font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95">
+ Update Exam Data
+ </button>
+ </div>
+ </div>
+ </form>
 </div>
 
 <script>
-function examBuilder(dbQuestions) {
-    return {
-        questions: dbQuestions.map(q => ({
-            ...q,
-            new_preview: null,
-            is_required: q.is_required,
-            answer_details: {
-                options: (q.answer_details && q.answer_details.options) ? q.answer_details.options : [],
-                pairs: (q.answer_details && q.answer_details.pairs) ? q.answer_details.pairs : []
-            }
-        })),
+function examBuilder(initialQuestionsData, allStudents, assignedIds, initialMode, initialDurMode) {
+ let initialQuestions = initialQuestionsData;
+ if (initialQuestions.length > 0) {
+ initialQuestions = initialQuestions.map(q => ({
+ id: q.id,
+ question_text: q.question_text,
+ type: q.type,
+ is_required: q.is_required,
+ duration: q.duration ? (q.duration / 60) : null,
+ context_image_path: q.context_image_path,
+ new_preview: null,
+ answer_details: {
+     options: (q.answer_details && q.answer_details.options) ? q.answer_details.options : [],
+     pairs: (q.answer_details && q.answer_details.pairs) ? q.answer_details.pairs : []
+ }
+ }));
+ }
+ 
+ return {
+ questions: initialQuestions,
+ allStudents: allStudents,
+ selectedStudentIds: assignedIds,
+ mode: initialMode || 'normal',
+ durMode: initialDurMode || 'global',
+ studentSearch: '',
+ studentSort: 'name_asc', // 'name_asc', 'school'
+ 
+ get filteredStudents() {
+ let filtered = this.allStudents.filter(s => 
+ s.name.toLowerCase().includes(this.studentSearch.toLowerCase()) ||
+ s.school.toLowerCase().includes(this.studentSearch.toLowerCase())
+ );
+ 
+ if (this.studentSort === 'name_asc') {
+ filtered.sort((a, b) => a.name.localeCompare(b.name));
+ } else if (this.studentSort === 'school') {
+ filtered.sort((a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name));
+ }
+ 
+ return filtered;
+ },
 
-        addQuestion() {
-            this.questions.push({
-                id: null,
-                type: 'option',
-                question_text: '',
-                is_required: true,
-                answer_details: { options: [{text: '', is_correct: false}], pairs: [] },
-                new_preview: null
-            });
-        },
+ toggleStudent(id) {
+ if (this.selectedStudentIds.includes(id)) {
+ this.selectedStudentIds = this.selectedStudentIds.filter(sid => sid !== id);
+ } else {
+ this.selectedStudentIds.push(id);
+ }
+ },
 
-        removeQuestion(index) {
-            window.pendingDeleteIndex = index;
-            window.confirmAction({
-                title: 'Delete Question',
-                message: 'Are you sure you want to permanently delete this question node? This action cannot be undone.',
-                icon: '🗑️',
-                type: 'danger',
-                confirmText: 'Delete Question',
-                onConfirm: 'executeQuestionDeletion'
-            });
-        },
+ addQuestion() {
+ this.questions.push({
+  id: null,
+  type: 'option',
+  question_text: '',
+  is_required: true,
+  duration: null,
+  context_image_path: null,
+  new_preview: null,
+  answer_details: { options: [{text: '', is_correct: false, image: null}], pairs: [] }
+ });
+ },
 
-        moveUp(index) {
-            if (index > 0) {
-                const temp = this.questions[index];
-                this.questions[index] = this.questions[index - 1];
-                this.questions[index - 1] = temp;
-            }
-        },
+ removeQuestion(index) {
+ window.pendingDeleteIndex = index;
+ window.confirmAction({
+ title: 'Delete Question',
+ message: 'Are you sure you want to permanently delete this question node? This action cannot be undone.',
+ icon: '🗑️',
+ type: 'danger',
+ confirmText: 'Delete Question',
+ onConfirm: 'executeQuestionDeletion'
+ });
+ },
 
-        moveDown(index) {
-            if (index < this.questions.length - 1) {
-                const temp = this.questions[index];
-                this.questions[index] = this.questions[index + 1];
-                this.questions[index + 1] = temp;
-            }
-        },
+ moveUp(index) {
+ if (index > 0) {
+ const temp = this.questions[index];
+ this.questions[index] = this.questions[index - 1];
+ this.questions[index - 1] = temp;
+ }
+ },
 
-        addOption(qIndex) {
-            this.questions[qIndex].answer_details.options.push({ text: '', is_correct: false, image: null });
-        },
+ moveDown(index) {
+ if (index < this.questions.length - 1) {
+ const temp = this.questions[index];
+ this.questions[index] = this.questions[index + 1];
+ this.questions[index + 1] = temp;
+ }
+ },
 
-        removeOption(qIndex, oIndex) {
-            this.questions[qIndex].answer_details.options.splice(oIndex, 1);
-        },
+ addOption(qIndex) {
+ this.questions[qIndex].answer_details.options.push({ text: '', is_correct: false, image: null });
+ },
 
-        addPair(qIndex) {
-            this.questions[qIndex].answer_details.pairs.push({ left: '', right: '' });
-        },
+ removeOption(qIndex, oIndex) {
+ this.questions[qIndex].answer_details.options.splice(oIndex, 1);
+ },
 
-        removePair(qIndex, pIndex) {
-            this.questions[qIndex].answer_details.pairs.splice(pIndex, 1);
-        }
-    }
+ addPair(qIndex) {
+ this.questions[qIndex].answer_details.pairs.push({ left: '', right: '' });
+ },
+
+ removePair(qIndex, pIndex) {
+ this.questions[qIndex].answer_details.pairs.splice(pIndex, 1);
+ }
+ }
 }
 
 window.executeQuestionDeletion = function() {
-    const el = document.querySelector('[x-data^="examBuilder"]');
-    if (el && window.Alpine) {
-        const data = window.Alpine.$data(el);
-        if (data && typeof window.pendingDeleteIndex !== 'undefined') {
-            data.questions.splice(window.pendingDeleteIndex, 1);
-            window.pendingDeleteIndex = undefined;
-        }
-    }
+ const el = document.querySelector('[x-data^="examBuilder"]');
+ if (el && window.Alpine) {
+ const data = window.Alpine.$data(el);
+ if (data && typeof window.pendingDeleteIndex !== 'undefined') {
+ data.questions.splice(window.pendingDeleteIndex, 1);
+ window.pendingDeleteIndex = undefined;
+ }
+ }
 };
 </script>
 
 <style>
-    [x-cloak] { display: none !important; }
+ [x-cloak] { display: none !important; }
+ input::placeholder { color: #64748b; font-weight: 700; opacity: 1; }
+ .dark input::placeholder { color: #94a3b8; opacity: 1; }
+ 
+ .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+ .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+ .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+ .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
 </style>
 @endsection

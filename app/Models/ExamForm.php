@@ -8,6 +8,13 @@ class ExamForm extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'randomize_questions' => 'boolean',
+        'current_step' => 'integer',
+        'duration_mode' => 'string',
+        'duration' => 'float',
+    ];
+
     public function questions()
     {
         return $this->hasMany(ExamQuestion::class);

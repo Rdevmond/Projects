@@ -224,7 +224,7 @@
     <div x-data="modalSystem()" 
          @modal.window="show($event.detail)"
          x-show="isOpen" 
-         class="fixed inset-0 z-10000 overflow-y-auto" 
+         class="fixed inset-0 z-9999 overflow-y-auto" 
          x-cloak>
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
              <div x-show="isOpen" 
