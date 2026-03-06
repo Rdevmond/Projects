@@ -2,47 +2,31 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto py-8 px-4">
-    <div class="mb-10 border-b border-slate-100 dark:border-slate-800 pb-8 transition-colors">
-        <h1 class="text-5xl font-black text-slate-900 dark:text-white tracking-tight italic transition-colors">{{ $exam->title }}</h1>
-        <p class="text-slate-400 dark:text-slate-500 mt-3 text-xl font-medium transition-colors">{{ $exam->description }}</p>
+    <div class="mb-6 md:mb-10 border-b border-slate-100 dark:border-slate-800 pb-6 md:pb-8 transition-colors">
+        <h1 class="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight italic transition-colors leading-tight">{{ $exam->title }}</h1>
+        <p class="text-slate-400 dark:text-slate-500 mt-2 md:mt-3 text-lg md:text-xl font-medium transition-colors">{{ $exam->description }}</p>
     </div>
 
     <form id="exam-form" 
           action="{{ route('exam.submit', $exam) }}" 
           method="POST" 
-          x-data="{ 
-              mode: '{{ $exam->exam_mode }}',
-              currentStep: {{ Auth::user()->submissions()->where('exam_form_id', $exam->id)->first()->current_step ?? 0 }},
-              totalQuestions: {{ $exam->questions->count() }},
-              nextStep() {
-                  if (this.currentStep < this.totalQuestions - 1) {
-                      this.currentStep++;
-                      this.updateStep();
-                      window.dispatchEvent(new CustomEvent('step-changed', { detail: { step: this.currentStep } }));
-                  }
-              },
-              async updateStep() {
-                  try {
-                      await fetch('{{ route('exam.update-step', $exam) }}', {
-                          method: 'POST',
-                          headers: {
-                              'Content-Type': 'application/json',
-                              'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                          },
-                          body: JSON.stringify({ step: this.currentStep })
-                      });
-                  } catch (e) {
-                      console.error('Failed to sync progress:', e);
-                  }
-              }
-          }">
+          x-data="studentExam(
+              '{{ $exam->exam_mode }}', 
+              {{ Auth::user()->submissions()->where('exam_form_id', $exam->id)->first()->current_step ?? 0 }}, 
+              {{ $exam->questions->count() }},
+              '{{ route('exam.update-step', $exam) }}',
+              '{{ csrf_token() }}'
+          )">
         @csrf
         @foreach($exam->questions as $index => $q)
             <div x-show="mode === 'normal' || currentStep === {{ $index }}"
                  x-transition:enter="transition ease-out duration-300 transform"
                  x-transition:enter-start="opacity-0 translate-x-12"
                  x-transition:enter-end="opacity-100 translate-x-0"
-                 class="bg-white dark:bg-slate-800 p-8 rounded-[3rem] shadow-sm border border-slate-200 dark:border-slate-700 mb-8 transition-colors">
+                 data-required="{{ $q->is_required ? 'true' : 'false' }}"
+                 data-question-number="{{ $index + 1 }}"
+                 data-question-type="{{ $q->type }}"
+                 class="question-node bg-white dark:bg-slate-800 p-5 md:p-8 rounded-3xl md:rounded-[3rem] shadow-sm border border-slate-200 dark:border-slate-700 mb-6 md:mb-8 transition-colors">
                 <div class="flex items-center gap-3 mb-6">
                     <span class="px-4 py-1.5 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest">Q-{{ $index + 1 }}</span>
                     <span class="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest transition-colors">{{ $q->type }}</span>
@@ -63,26 +47,26 @@
                 @if($q->type === 'option')
                     <div class="grid gap-4">
                         @foreach($q->answer_details['options'] as $opt)
-                            <label class="flex items-center p-6 rounded-4xl border-2 border-slate-50 dark:border-slate-700 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-700/50 hover:border-blue-200 dark:hover:border-blue-500 transition-all group">
+                            <label class="flex items-center p-4 md:p-6 rounded-3xl md:rounded-4xl border-2 border-slate-50 dark:border-slate-700 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-700/50 hover:border-blue-200 dark:hover:border-blue-500 transition-all group">
                                 <input type="checkbox" name="answers[{{ $q->id }}][]" value="{{ $opt['id'] }}"
-                                    class="w-6 h-6 rounded-lg border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 transition-all">
+                                    class="w-5 h-5 md:w-6 md:h-6 rounded-lg border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 transition-all">
                                 
                                 @if(isset($opt['image']) && $opt['image'])
                                     <img src="{{ asset('storage/' . $opt['image']) }}" 
-                                         class="ml-5 w-20 h-20 object-cover rounded-xl border-2 border-slate-100 dark:border-slate-600 shadow-sm transition-colors">
+                                         class="ml-3 md:ml-5 w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl border-2 border-slate-100 dark:border-slate-600 shadow-sm transition-colors">
                                 @endif
 
-                                <span class="ml-5 text-lg text-slate-700 dark:text-slate-300 font-bold group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{{ $opt['text'] }}</span>
+                                <span class="ml-3 md:ml-5 text-base md:text-lg text-slate-700 dark:text-slate-300 font-bold group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{{ $opt['text'] }}</span>
                             </label>
                         @endforeach
                     </div>
 
                 {{-- Connect the Dots: Randomized Right Column --}}
-                @elseif($q->type === 'connect')
-                    <div class="connect-container relative p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] transition-colors" id="q-{{ $q->id }}" data-question-id="{{ $q->id }}">
+                 @elseif($q->type === 'connect')
+                    <div class="connect-container relative p-4 md:p-8 bg-slate-50 dark:bg-slate-900/50 rounded-3xl md:rounded-[2.5rem] transition-colors" id="q-{{ $q->id }}" data-question-id="{{ $q->id }}">
                         <canvas class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></canvas>
-                        <div class="flex justify-between items-center relative z-10 gap-20">
-                            <div class="space-y-6 w-full">
+                        <div class="flex flex-col md:flex-row justify-between items-center relative z-10 gap-8 md:gap-20">
+                            <div class="space-y-4 md:space-y-6 w-full">
                                 @foreach($q->answer_details['pairs'] as $pair)
                                     <div class="dot-item flex items-center justify-between p-5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm transition-colors" data-side="left" data-value="{{ $pair['left'] }}">
                                         <span class="font-black text-slate-700 dark:text-slate-300 italic transition-colors">{{ $pair['left'] }}</span>
@@ -103,11 +87,11 @@
                         <div class="hidden-inputs"></div>
                     </div>
 
-                {{-- Essay: Teacher Review Message --}}
+                 {{-- Essay: Teacher Review Message --}}
                 @elseif($q->type === 'essay')
                     <div class="relative">
-                        <textarea name="answers[{{ $q->id }}]" class="w-full p-8 rounded-4xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 dark:focus:border-blue-400 text-slate-800 dark:text-slate-200 transition-all font-medium text-lg outline-none" rows="5" placeholder="Enter your response..."></textarea>
-                        <div class="mt-3 flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest">
+                        <textarea name="answers[{{ $q->id }}]" class="w-full p-5 md:p-8 rounded-3xl md:rounded-4xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 dark:focus:border-blue-400 text-slate-800 dark:text-slate-200 transition-all font-medium text-base md:text-lg outline-none" rows="5" placeholder="Enter your response..."></textarea>
+                        <div class="mt-3 flex items-center gap-2 text-amber-500 font-bold text-[10px] md:text-xs uppercase tracking-widest">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
                             Manual Review Required
                         </div>
@@ -123,8 +107,8 @@
                 </button>
             </template>
             
-            <template x-if="mode === 'normal' || currentStep === totalQuestions - 1">
-                <button type="button" @click="confirmSubmission()" class="w-full bg-slate-900 text-white py-6 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-blue-600 transition-all transform hover:-translate-y-1">
+             <template x-if="mode === 'normal' || currentStep === totalQuestions - 1">
+                <button type="button" @click="confirmSubmission()" class="w-full bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-lg md:text-xl shadow-2xl hover:bg-[#003e5c] dark:hover:bg-[#008ebb] transition-all transform hover:-translate-y-1">
                     SUBMIT EXAM
                 </button>
             </template>
@@ -141,6 +125,61 @@
 @endif
 
 <script>
+function studentExam(mode, currentStep, totalQuestions, updateUrl, csrfToken) {
+    return {
+        mode,
+        currentStep,
+        totalQuestions,
+        nextStep(force = false) {
+            const isStrict = this.mode === 'normal' && '{{ $exam->duration_mode }}' !== 'per_question';
+            if (!force && isStrict) {
+                const currentQuestionNode = document.querySelectorAll('.question-node')[this.currentStep];
+                if (currentQuestionNode && currentQuestionNode.dataset.required === 'true') {
+                    const type = currentQuestionNode.dataset.questionType;
+                    let answered = false;
+
+                    if (type === 'option') {
+                        answered = currentQuestionNode.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+                    } else if (type === 'essay') {
+                        answered = currentQuestionNode.querySelector('textarea').value.trim().length > 0;
+                    } else if (type === 'connect') {
+                        answered = currentQuestionNode.querySelectorAll('.hidden-inputs input').length > 0;
+                    }
+
+                    if (!answered) {
+                        window.notify('Please answer this required question before moving forward.', 'Question Required', 'warning');
+                        return;
+                    }
+                }
+            }
+
+            if (this.currentStep < this.totalQuestions - 1) {
+                this.currentStep++;
+                this.updateStep();
+                window.dispatchEvent(new CustomEvent('step-changed', { detail: { step: this.currentStep } }));
+            } else if (force) {
+                // If it's the last step AND forced (e.g. by timer), submit the exam
+                window.onbeforeunload = null;
+                document.getElementById('exam-form').submit();
+            }
+        },
+        async updateStep() {
+            try {
+                await fetch(updateUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ step: this.currentStep })
+                });
+            } catch (e) {
+                console.error('Failed to sync progress:', e);
+            }
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // NAVIGATION LOCKING - Prevent back button
     history.pushState(null, null, location.href);
@@ -211,8 +250,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (questionTimerInterval) clearInterval(questionTimerInterval);
             
             const q = questions[stepIndex];
-            // If question has no override, use global duration (which is in minutes) converted to seconds
-            const qSeconds = q.duration || (globalDurationVal * 60); 
+            const qMinutes = q.duration || globalDurationVal;
+            const qSeconds = Math.round(qMinutes * 60);
             
             if (!qSeconds) {
                 document.getElementById('countdown-display').innerHTML = "∞";
@@ -223,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             function updateQTimer() {
                 const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
+                const seconds = Math.floor(timeLeft % 60);
                 
                 document.getElementById('countdown-display').innerHTML = 
                     (minutes < 10 ? "0" + minutes : minutes) + ":" + 
@@ -239,16 +278,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (timeLeft <= 0) {
+                    console.log('Timer hit 0!');
                     clearInterval(questionTimerInterval);
                     const alpineData = document.querySelector('[x-data]').__x.$data;
+                    console.log('Alpine data current step:', alpineData.currentStep, 'Total:', alpineData.totalQuestions);
                     if (alpineData.currentStep < alpineData.totalQuestions - 1) {
-                        alpineData.nextStep();
+                        console.log('Forcing next step...');
+                        alpineData.nextStep(true); // Force bypass required checks on auto-advance
                     } else {
+                        console.log('Forcing submit...');
                         window.onbeforeunload = null;
                         form.submit();
                     }
+                    return; // Stop further execution
                 }
-                timeLeft--;
+                timeLeft = Math.max(0, timeLeft - 1);
             }
 
             questionTimerInterval = setInterval(updateQTimer, 1000);
@@ -270,20 +314,54 @@ document.addEventListener('DOMContentLoaded', function() {
         window.onbeforeunload = null;
     });
 
-    window.confirmSubmission = function() {
-            confirmAction({
-                title: 'Final Submission',
-                message: 'Are you sure you want to end the exam? You will not be able to change your answers once submitted.',
+        window.confirmSubmission = function() {
+            const isStrict = '{{ $exam->exam_mode }}' === 'normal' && '{{ $exam->duration_mode }}' !== 'per_question';
+            
+            if (isStrict) {
+                // Validation Logic
+                const unansweredRequired = [];
+                document.querySelectorAll('.question-node[data-required="true"]').forEach(node => {
+                    const type = node.dataset.questionType;
+                    const num = node.dataset.questionNumber;
+                    let answered = false;
+
+                    if (type === 'option') {
+                        answered = node.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+                    } else if (type === 'essay') {
+                        answered = node.querySelector('textarea').value.trim().length > 0;
+                    } else if (type === 'connect') {
+                        // Hidden inputs are added by connect-dots logic
+                        answered = node.querySelectorAll('.hidden-inputs input').length > 0;
+                    }
+
+                    if (!answered) {
+                        unansweredRequired.push(num);
+                    }
+                });
+
+                if (unansweredRequired.length > 0) {
+                    window.notify(
+                        'Please answer required question(s): ' + unansweredRequired.join(', '),
+                        'Incomplete Exam',
+                        'warning'
+                    );
+                    return;
+                }
+            }
+
+            window.confirmAction({
+                title: 'Submit Exam?',
+                message: 'Are you sure you want to finish the exam? You cannot change your answers after submitting.',
                 icon: '🚀',
+                type: 'primary',
                 confirmText: 'Submit Now',
-                cancelText: 'Continue Exam',
                 onConfirm: 'submitExamForm'
             });
         };
 
         window.submitExamForm = function() {
             window.onbeforeunload = null;
-            if (durationMinutes > 0) { // Only clear timer key if timer was active
+            if (globalDurationVal > 0) { // Only clear timer key if timer was active
                 const timerKey = 'exam_start_' + '{{ $exam->uuid }}';
                 localStorage.removeItem(timerKey);
             }

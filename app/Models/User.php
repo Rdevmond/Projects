@@ -57,4 +57,12 @@ class User extends Authenticatable
         return $this->belongsToMany(ExamForm::class, 'exam_user', 'user_id', 'exam_form_id')
                     ->withTimestamps();
     }
+
+    /**
+     * Exam submissions by this user.
+     */
+    public function submissions()
+    {
+        return $this->hasMany(ExamSubmission::class);
+    }
 }

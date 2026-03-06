@@ -45,25 +45,36 @@
  @endif
  </div>
 
- {{-- Student Answer Box --}}
- <div class="mb-8">
- <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 transition-colors">Student Response</span>
- <div class="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-700 text-[#005073] dark:text-[#00bceb] font-medium leading-relaxed whitespace-pre-wrap shadow-inner relative transition-colors">
- {{ $studentAns[$question->id] ?? 'No response provided.' }}
- </div>
- </div>
+                {{-- Student Answer Box --}}
+                <div class="mb-8">
+                    <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 transition-colors">Student Response</span>
+                    <div class="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-700 text-[#005073] dark:text-[#00bceb] font-medium leading-relaxed whitespace-pre-wrap shadow-inner relative transition-colors text-sm sm:text-base">
+                        {{ $studentAns[$question->id] ?? 'No response provided.' }}
+                    </div>
+                </div>
 
- {{-- Scoring Input --}}
- <div class="flex items-center gap-4 p-5 bg-[#eefbff] dark:bg-[#00bceb]/10 rounded-2xl border border-[#00bceb]/20 dark:border-[#00bceb]/30 transition-colors">
- <div class="grow">
- <span class="text-sm font-black text-[#005073] dark:text-[#00bceb] transition-colors">Assign Points</span>
- <p class="text-xs text-[#00bceb] dark:text-slate-400 font-bold transition-colors">Score: 1 (Correct) or 0 (Incorrect)</p>
- </div>
- <div class="relative">
- <input type="number" name="manual_points" value="0" min="0" max="1"
- class="w-24 p-4 rounded-xl border-2 border-[#00bceb]/30 dark:border-[#00bceb]/50 focus:border-[#005073] dark:focus:border-[#00bceb] focus:ring-4 focus:ring-[#00bceb]/10 bg-white dark:bg-slate-800 text-center text-xl font-black text-[#005073] dark:text-white outline-none transition-all">
- </div>
- </div>
+                {{-- Scoring Input --}}
+                <div x-data="{ manualPoints: 0 }" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 sm:p-6 bg-[#eefbff] dark:bg-[#00bceb]/10 rounded-2xl border border-[#00bceb]/20 dark:border-[#00bceb]/30 transition-colors">
+                    <div class="grow w-full">
+                        <span class="text-sm font-black text-[#005073] dark:text-[#00bceb] transition-colors">Mark as Result</span>
+                        <p class="text-xs text-[#00bceb] dark:text-slate-400 font-bold transition-colors">Choose between Incorrect (0) or Correct (1)</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <input type="hidden" name="manual_points" :value="manualPoints">
+                        
+                        <button type="button" @click="manualPoints = 0"
+                            :class="manualPoints == 0 ? 'bg-[#E2231A] text-white shadow-lg shadow-rose-500/30' : 'bg-white dark:bg-slate-800 text-slate-400 border-2 border-slate-100 dark:border-slate-700'"
+                            class="flex-1 sm:flex-none px-6 py-4 sm:py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95">
+                            Incorrect
+                        </button>
+                        
+                        <button type="button" @click="manualPoints = 1"
+                            :class="manualPoints == 1 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white dark:bg-slate-800 text-slate-400 border-2 border-slate-100 dark:border-slate-700'"
+                            class="flex-1 sm:flex-none px-6 py-4 sm:py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95">
+                            Correct
+                        </button>
+                    </div>
+                </div>
  </div>
  </div>
  @endforeach

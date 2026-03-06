@@ -113,12 +113,13 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50/50 dark:bg-slate-800/50 transition-colors">
                         <th class="px-8 py-5 text-[10px] font-black text-[#E2231A] dark:text-[#E2231A] uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 transition-colors">Identity Profile</th>
                         <th class="px-8 py-5 text-[10px] font-black text-[#E2231A] dark:text-[#E2231A] uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 transition-colors">Academic Hub</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-[#E2231A] dark:text-[#E2231A] uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 transition-colors">Credentials</th>
                         <th class="px-8 py-5 text-[10px] font-black text-[#E2231A] dark:text-[#E2231A] uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 text-right transition-colors">Command Access</th>
                     </tr>
                 </thead>
@@ -144,6 +145,26 @@
                                 {{ $user->school ?? 'Remote Terminal' }}
                             </span>
                         </td>
+                        <td class="px-8 py-6" x-data="{ show: false }">
+                            <div class="flex items-center gap-2">
+                                <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700 min-w-[100px] text-center">
+                                    <span x-show="!show" class="text-slate-400 tracking-tighter font-black">••••••••</span>
+                                    <span x-show="show" x-cloak class="text-[#00bceb] font-black text-xs tracking-wider">
+                                        @php
+                                            try {
+                                                echo $user->plain_password ? \Illuminate\Support\Facades\Crypt::decryptString($user->plain_password) : 'N/A';
+                                            } catch (\Exception $e) {
+                                                echo 'Error';
+                                            }
+                                        @endphp
+                                    </span>
+                                </div>
+                                <button @click="show = !show" class="text-slate-400 hover:text-[#00bceb] transition-colors p-1" :title="show ? 'Hide Password' : 'Show Password'">
+                                    <svg x-show="!show" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <svg x-show="show" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.025 10.025 0 014.477-5.99M9.172 9.172a4 4 0 115.656 5.656M7.245 7.245L5.636 5.636m12.728 12.728L16.726 16.726m0-4.042a3 3 0 11-4.243-4.243m4.242 4.242L18.364 18.364M3.636 3.636l16.728 16.728"/></svg>
+                                </button>
+                            </div>
+                        </td>
                         <td class="px-8 py-6 text-right">
                             <div class="flex justify-end items-center gap-3">
                                 <a href="{{ route('admin.users.edit', $user) }}" 
@@ -159,7 +180,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="3" class="px-8 py-24 text-center">
+                        <td colspan="4" class="px-8 py-24 text-center">
                             <div class="flex flex-col items-center gap-4">
                                 <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-4xl flex items-center justify-center transition-colors shadow-inner">
                                     <svg class="w-10 h-10 text-slate-300 dark:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -171,6 +192,65 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        {{-- MOBILE CARD VIEW --}}
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
+            @forelse($users as $user)
+            <div x-show="search === '' || '{{ strtolower($user->name) }} {{ strtolower($user->school) }}'.includes(search.toLowerCase())"
+                 class="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="shrink-0 w-12 h-12 rounded-full bg-[#005073] bg-gradient-to-br from-[#005073] to-[#00bceb] flex items-center justify-center text-white font-black text-sm border-2 border-white dark:border-slate-800 shadow-md">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-black text-slate-800 dark:text-white uppercase tracking-tight truncate leading-tight">{{ $user->name }}</div>
+                        <div class="text-[10px] text-[#00bceb] font-black uppercase tracking-widest mt-0.5">{{ $user->username }}</div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[9px]">Hub</span>
+                        <span class="font-black text-slate-700 dark:text-slate-300">{{ $user->school ?? 'Remote Terminal' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs" x-data="{ show: false }">
+                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[9px]">Key</span>
+                        <div class="flex items-center gap-2">
+                            <span x-show="!show" class="text-slate-300 tracking-tighter font-black">••••••••</span>
+                            <span x-show="show" x-cloak class="text-[#00bceb] font-black tracking-wider">
+                                @php
+                                    try {
+                                        echo $user->plain_password ? \Illuminate\Support\Facades\Crypt::decryptString($user->plain_password) : 'N/A';
+                                    } catch (\Exception $e) {
+                                        echo 'Error';
+                                    }
+                                @endphp
+                            </span>
+                            <button @click="show = !show" class="text-slate-400 p-1">
+                                <svg x-show="!show" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <svg x-show="show" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.025 10.025 0 014.477-5.99M9.172 9.172a4 4 0 115.656 5.656M7.245 7.245L5.636 5.636m12.728 12.728L16.726 16.726m0-4.042a3 3 0 11-4.243-4.243m4.242 4.242L18.364 18.364M3.636 3.636l16.728 16.728"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{{ route('admin.users.edit', $user) }}" 
+                        class="flex-1 flex justify-center items-center py-3 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl border border-slate-100 dark:border-slate-700 font-bold text-[10px] uppercase tracking-widest">
+                        Edit Profile
+                    </a>
+                    <button type="button" @click="confirmDelete('{{ route('admin.users.destroy', $user) }}', '{{ $user->name }}')"
+                        class="px-4 flex justify-center items-center bg-rose-50 dark:bg-rose-900/10 text-rose-500 rounded-xl border border-rose-100 dark:border-rose-900/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+            </div>
+            @empty
+            <div class="p-10 text-center text-slate-400 italic text-xs uppercase tracking-widest">
+                Zero Personnel Detected
+            </div>
+            @endforelse
         </div>
 
         @if($users->hasPages())

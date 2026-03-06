@@ -12,7 +12,7 @@ class ExamQuestion extends Model
         'answer_details'   => 'array',
         'answers_snapshot' => 'array',
         'is_required'      => 'boolean',
-        'duration'         => 'integer',
+        'duration'         => 'float',
     ];
 
     public function exam()

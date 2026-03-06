@@ -4,7 +4,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex justify-between items-center">
         {{-- Logo --}}
         <a href="{{ route('home') }}" class="flex items-center group">
-            <img src="{{ asset('images/logo-netriders.png') }}" alt="Cisco NetRiders Logo" class="h-14 w-auto drop-shadow-md group-hover:scale-105 transition-transform duration-300 brightness-100">
+            <div class="bg-white p-1 md:p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10 group-hover:shadow-md group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
+                <img src="{{ asset('images/logo-netriders.png') }}" alt="Cisco NetRiders Logo" 
+                     class="h-10 md:h-12 w-auto block">
+            </div>
             <div class="ml-4 border-l border-slate-200 dark:border-slate-700 pl-4 hidden md:block">
                 <span class="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-super-wide leading-none">Cisco Networking Academy</span>
                 <span class="block text-sm font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-tighter">NetRiders Assessment</span>

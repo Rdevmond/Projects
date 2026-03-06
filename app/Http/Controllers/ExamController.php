@@ -3,10 +3,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ExamForm;
 use App\Models\ExamSubmission;
-use App\Models\ExamQuestion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ExamController extends Controller
@@ -193,8 +191,8 @@ class ExamController extends Controller
                 'question_text' => $qData['text'] ?? 'Untitled Question',
                 'type' => $type,
                 'context_image_path' => $contextImagePath,
-                'is_required' => isset($qData['is_required']),
-                'duration' => isset($qData['duration']) ? (int)($qData['duration'] * 60) : null,
+                'is_required' => isset($qData['required']),
+                'duration' => isset($qData['duration']) ? (float)$qData['duration'] : null,
                 'answer_details' => $answerDetails,
             ]);
         }

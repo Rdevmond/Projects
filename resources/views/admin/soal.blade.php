@@ -32,11 +32,11 @@
  @endif
 
  {{-- HEADER: Exam Info --}}
- <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-t-4 border-t-[#005073] dark:border-t-[#00bceb] shadow-sm p-10 mb-10 transition-colors">
- <input type="text" name="exam_title" required
- value="{{ $exam->title ?? '' }}"
- class="text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full border-b-2 border-slate-100 dark:border-slate-700 bg-transparent focus:border-[#E2231A] dark:focus:border-rose-400 focus:outline-none transition-all mb-4 placeholder-slate-400 dark:placeholder-slate-500"
- placeholder="Enter Exam Title...">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 border-t-4 border-t-[#005073] dark:border-t-[#00bceb] shadow-sm p-6 md:p-10 mb-6 md:mb-10 transition-colors">
+  <input type="text" name="exam_title" required
+  value="{{ $exam->title ?? '' }}"
+  class="text-2xl md:text-4xl font-black text-[#005073] dark:text-[#00bceb] w-full border-b-2 border-slate-100 dark:border-slate-700 bg-transparent focus:border-[#E2231A] dark:focus:border-rose-400 focus:outline-none transition-all mb-4 placeholder-slate-400 dark:placeholder-slate-500"
+  placeholder="Enter Exam Title...">
 
  <input type="text" name="exam_description"
  value="{{ $exam->description ?? '' }}"
@@ -80,7 +80,7 @@
 
         {{-- Duration Input (Contextual) --}}
         <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
-            <input type="number" name="duration" value="{{ $exam->duration ?? '' }}" min="0.1" step="0.1"
+            <input type="number" name="duration" value="{{ $exam->duration ?? '' }}" min="0.01" step="0.01"
                    class="bg-transparent border-none p-0 w-20 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder-slate-400 dark:placeholder-slate-500"
                    placeholder="Value">
             <div class="relative h-4 w-24 overflow-hidden">
@@ -119,8 +119,8 @@
  </div>
 
  {{-- User Assignment Section (DYNAMIC) --}}
- <div class="mt-8 p-8 bg-[#eefbff]/30 dark:bg-slate-900/50 rounded-4xl border-2 border-dashed border-[#00bceb]/20 dark:border-[#005073]/40 transition-colors">
- <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+ <div class="mt-8 p-6 md:p-8 bg-[#eefbff]/30 dark:bg-slate-900/50 rounded-3xl md:rounded-4xl border-2 border-dashed border-[#00bceb]/20 dark:border-[#005073]/40 transition-colors">
+ <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
  <div>
  <label class="text-[10px] font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-[0.2em] flex items-center gap-2 mb-1 transition-colors">
  <div class="p-1.5 bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 rounded-lg shadow-md transition-colors">
@@ -132,14 +132,14 @@
  </div>
 
  {{-- SEARCH & SORT CONTROLS --}}
- <div class="flex flex-wrap items-center gap-3">
- <div class="relative">
- <input type="text" x-model="studentSearch" placeholder="Search school or student..." 
+ <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+ <div class="relative w-full sm:w-auto">
+ <input type="text" x-model="studentSearch" placeholder="Search..." 
  class="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:border-[#00bceb] focus:ring-4 focus:ring-[#00bceb]/5 transition-all w-full md:w-60 placeholder-slate-400 dark:placeholder-slate-500">
  <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
  </div>
  
- <div class="flex bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1 transition-colors">
+ <div class="flex bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1 transition-colors w-fit">
  <button type="button" @click="studentSort = 'name_asc'" 
  :class="studentSort === 'name_asc' ? 'bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 border-[#005073] dark:border-[#00bceb]' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'"
  class="px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all">A-Z</button>
@@ -192,7 +192,7 @@
 
  {{-- Question Loop --}}
  <template x-for="(question, index) in questions" :key="question.id">
- <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-slate-700 mb-8 overflow-hidden transition-all hover:shadow-xl dark:hover:shadow-none duration-300 ease-in-out"
+  <div class="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-slate-700 mb-6 md:mb-8 overflow-hidden transition-all hover:shadow-xl dark:hover:shadow-none duration-300 ease-in-out"
  x-transition:enter="transition ease-out duration-300 transform"
  x-transition:enter-start="opacity-0 translate-y-8 scale-95"
  x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -200,9 +200,9 @@
  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
  x-transition:leave-end="opacity-0 -translate-y-4 scale-95">
 
- <div class="p-8 pb-4">
+ <div class="p-6 md:p-8 pb-4">
  {{-- Row 1: Number, Title, Type --}}
- <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+ <div class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-6 items-end">
  <div class="md:col-span-8">
  <div class="flex items-center gap-3 mb-3">
  <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-[#E2231A] text-white text-xs font-black shadow-lg shadow-[#E2231A]/20 transition-colors" x-text="index + 1"></span>
@@ -250,7 +250,7 @@
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95">
         <svg class="w-4 h-4 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <input type="number" :name="`questions[${index}][duration]`" x-model="question.duration" placeholder="Default" step="0.1"
+        <input type="number" :name="`questions[${index}][duration]`" x-model="question.duration" placeholder="Default" step="0.01" min="0.01"
                class="bg-transparent border-none p-0 w-16 text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 focus:ring-0 placeholder-slate-300 dark:placeholder-slate-700 transition-colors">
         <span class="text-[8px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">Min/Quest</span>
     </div>
@@ -354,14 +354,14 @@
  {{-- Card Actions --}}
  <div class="bg-slate-50 dark:bg-slate-900 px-8 py-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800/50 transition-colors duration-300">
  <div class="flex items-center gap-4">
- <label class="flex items-center gap-3 cursor-pointer group">
- <div class="relative w-10 h-5 flex items-center">
- <input type="checkbox" :name="`questions[${index}][required]`" :checked="question.is_required" class="sr-only peer">
- <div class="w-full h-full bg-[#002e44] dark:bg-slate-800 rounded-full peer peer-checked:bg-[#E2231A] dark:peer-checked:bg-rose-500 transition-colors"></div>
- <div class="absolute left-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
- </div>
- <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 group-hover:text-[#005073] dark:group-hover:text-white uppercase tracking-widest transition-colors">Required</span>
- </label>
+  <label class="flex items-center gap-3 cursor-pointer group" x-show="durMode !== 'per_question' && mode !== 'sequential'">
+  <div class="relative w-10 h-5 flex items-center">
+  <input type="checkbox" :name="`questions[${index}][required]`" :checked="question.is_required" class="sr-only peer">
+  <div class="w-full h-full bg-[#002e44] dark:bg-slate-800 rounded-full peer peer-checked:bg-[#E2231A] dark:peer-checked:bg-rose-500 transition-colors"></div>
+  <div class="absolute left-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+  </div>
+  <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 group-hover:text-[#005073] dark:group-hover:text-white uppercase tracking-widest transition-colors">Required</span>
+  </label>
 
  {{-- Reorder Buttons --}}
  <div class="flex items-center bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-slate-700 transition-colors">
@@ -419,7 +419,7 @@ function examBuilder(allStudents, assignedIds, initialMode, initialDurMode) {
   text: q.question_text,
   type: q.type,
   is_required: q.is_required,
-  duration: q.duration ? (q.duration / 60) : null,
+  duration: q.duration ? q.duration : null,
   context_image_path: q.context_image_path,
   options: (q.answer_details && q.answer_details.options) ? q.answer_details.options : [{text: ''}, {text: ''}],
   pairs: (q.answer_details && q.answer_details.pairs) ? q.answer_details.pairs : [{left: '', right: ''}],

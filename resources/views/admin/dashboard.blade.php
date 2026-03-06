@@ -58,142 +58,253 @@
 
 {{-- Exam List Table --}}
 <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden transition-colors" x-data="{ deleteModalOpen: false, deleteAction: '' }">
- <table class="w-full text-left border-collapse">
- <thead>
- <tr class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-colors">
- <th class="px-6 py-4 text-[#005073] dark:text-[#00bceb]">Title & Description</th>
- <th class="px-6 py-4 text-[#005073] dark:text-[#00bceb] text-center">Current Status</th>
- <th class="px-6 py-4 text-right text-[#005073] dark:text-[#00bceb]">Actions</th>
- </tr>
- </thead>
- <tbody class="divide-y divide-slate-100 dark:divide-slate-700 transition-colors">
- @forelse($exams as $exam)
- <tr class="hover:bg-[#eefbff]/50 dark:hover:bg-slate-700/50 group">
- <td class="px-6 py-5">
- <div class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#005073] dark:group-hover:text-[#00bceb] transition-colors">{{ $exam->title }}</div>
- <div class="text-xs text-slate-400 dark:text-slate-500 mt-1 transition-colors">{{ Str::limit($exam->description, 60) }}</div>
- 
- {{-- Completion & Essay Status Indicators --}}
- <div class="flex items-center gap-2 mt-3">
- @php
- $status = $exam->getCompletionStatus();
- $pendingEssays = $exam->submissions()->where('status', 'pending')->count();
- @endphp
- 
- @if($status['total'] > 0)
- <div class="flex flex-col gap-1.5 min-w-[120px]">
- <div class="flex items-center justify-between">
- <span class="px-2 py-1 bg-[#049FD9]/10 dark:bg-[#049FD9]/20 text-[#049FD9] dark:text-[#00bceb] rounded-lg text-[9px] font-black uppercase tracking-wider border border-[#049FD9]/20 dark:border-[#049FD9]/40 transition-colors">
- {{ $status['completed'] }}/{{ $status['total'] }} Completed
- </span>
- <span class="text-[9px] font-black text-[#049FD9] dark:text-[#00bceb] transition-colors">{{ $status['percentage'] }}%</span>
- </div>
- <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50 transition-colors">
- <div class="h-full bg-[#049FD9] transition-all duration-500" style="width: {{ $status['percentage'] }}%"></div>
- </div>
- </div>
- @endif
- 
- @if($pendingEssays > 0)
- <span class="px-2 py-1 bg-[#FF9E18]/10 text-[#FF9E18] rounded-lg text-[9px] font-black uppercase tracking-wider border border-[#FF9E18]/20 animate-pulse self-start mt-0.5">
- {{ $pendingEssays }} Essay{{ $pendingEssays > 1 ? 's' : '' }} Pending
- </span>
- @endif
- </div>
- </td>
+    {{-- DESKTOP TABLE VIEW --}}
+    <div class="hidden md:block">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-colors">
+                    <th class="px-6 py-4 text-[#005073] dark:text-[#00bceb]">Title & Description</th>
+                    <th class="px-6 py-4 text-[#005073] dark:text-[#00bceb] text-center">Current Status</th>
+                    <th class="px-6 py-4 text-right text-[#005073] dark:text-[#00bceb]">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700 transition-colors">
+                @forelse($exams as $exam)
+                <tr class="hover:bg-[#eefbff]/50 dark:hover:bg-slate-700/50 group">
+                    <td class="px-6 py-5">
+                        <div class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#005073] dark:group-hover:text-[#00bceb] transition-colors">{{ $exam->title }}</div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-1 transition-colors">{{ Str::limit($exam->description, 60) }}</div>
+                        
+                        {{-- Completion & Essay Status Indicators --}}
+                        <div class="flex items-center gap-2 mt-3">
+                            @php
+                                $status = $exam->getCompletionStatus();
+                                $pendingEssays = $exam->submissions()->where('status', 'pending')->count();
+                            @endphp
+                            
+                            @if($status['total'] > 0)
+                            <div class="flex flex-col gap-1.5 min-w-[120px]">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2 py-1 bg-[#049FD9]/10 dark:bg-[#049FD9]/20 text-[#049FD9] dark:text-[#00bceb] rounded-lg text-[9px] font-black uppercase tracking-wider border border-[#049FD9]/20 dark:border-[#049FD9]/40 transition-colors">
+                                        {{ $status['completed'] }}/{{ $status['total'] }} Completed
+                                    </span>
+                                    <span class="text-[9px] font-black text-[#049FD9] dark:text-[#00bceb] transition-colors">{{ $status['percentage'] }}%</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50 transition-colors">
+                                    <div class="h-full bg-[#049FD9] transition-all duration-500" style="width: {{ $status['percentage'] }}%"></div>
+                                </div>
+                            </div>
+                            @endif
+                            
+                            @if($pendingEssays > 0)
+                            <span class="px-2 py-1 bg-[#FF9E18]/10 text-[#FF9E18] rounded-lg text-[9px] font-black uppercase tracking-wider border border-[#FF9E18]/20 animate-pulse self-start mt-0.5">
+                                {{ $pendingEssays }} Essay{{ $pendingEssays > 1 ? 's' : '' }} Pending
+                            </span>
+                            @endif
+                        </div>
+                    </td>
 
- {{-- TOGGLE STATUS COLUMN --}}
- <td class="px-6 py-5 text-center" x-data="{ 
- status: '{{ $exam->status }}', 
- isLoading: false,
- async toggle() {
- this.isLoading = true;
- try {
- const res = await fetch('{{ route('admin.exams.toggle-status', $exam) }}', {
- method: 'PATCH',
- headers: {
- 'Content-Type': 'application/json',
- 'X-CSRF-TOKEN': '{{ csrf_token() }}',
- 'Accept': 'application/json'
- }
- });
- const data = await res.json();
- if (data.success) {
- this.status = data.status;
- }
- } catch (e) {
- console.error('Toggle failed', e);
- } finally {
- this.isLoading = false;
- }
- } 
- }">
- <button @click="toggle()" :disabled="isLoading"
- class="group relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
- :class="status === 'active' 
- ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40' 
- : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800'">
- 
- <span class="relative flex h-2 w-2">
- <span x-show="status === 'active'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
- <span class="relative inline-flex rounded-full h-2 w-2"
- :class="status === 'active' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'"></span>
- </span>
+                    {{-- TOGGLE STATUS COLUMN --}}
+                    <td class="px-6 py-5 text-center" x-data="{ 
+                        status: '{{ $exam->status }}', 
+                        isLoading: false,
+                        async toggle() {
+                            this.isLoading = true;
+                            try {
+                                const res = await fetch('{{ route('admin.exams.toggle-status', $exam) }}', {
+                                    method: 'PATCH',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    }
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    this.status = data.status;
+                                }
+                            } catch (e) {
+                                console.error('Toggle failed', e);
+                            } finally {
+                                this.isLoading = false;
+                            }
+                        } 
+                    }">
+                        <button @click="toggle()" :disabled="isLoading"
+                                class="group relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                                :class="status === 'active' 
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40' 
+                                    : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800'">
+                            
+                            <span class="relative flex h-2 w-2">
+                                <span x-show="status === 'active'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2"
+                                      :class="status === 'active' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'"></span>
+                            </span>
 
- <span x-text="isLoading ? '...' : (status === 'active' ? 'Activated' : 'Deactivated')"></span>
- </button>
- </td>
+                            <span x-text="isLoading ? '...' : (status === 'active' ? 'Activated' : 'Deactivated')"></span>
+                        </button>
+                    </td>
 
- <td class="px-6 py-5 text-right">
- <div class="flex justify-end items-center gap-2">
- {{-- SPECS / ANALYTICS BUTTON --}}
- <a href="{{ route('admin.specs', $exam) }}"
- class="p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#005073] dark:hover:bg-[#00bceb] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800"
- title="View Specs & Analytics">
- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
- </a>
+                    <td class="px-6 py-5 text-right">
+                        <div class="flex justify-end items-center gap-2">
+                            <a href="{{ route('admin.specs', $exam) }}"
+                               class="p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#005073] dark:hover:bg-[#00bceb] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800"
+                               title="View Specs & Analytics">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </a>
 
- {{-- VIEW SUBMISSIONS --}}
- <a href="{{ route('submissions.index', $exam) }}"
- class="relative p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#005073] dark:hover:bg-[#00bceb] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800"
- title="View Submissions">
- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
- @php $pendingCount = $exam->submissions->where('status', 'pending')->count(); @endphp
- @if($pendingCount > 0)
- <span class="absolute -top-1 -right-1 flex h-3 w-3">
- <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E2231A] opacity-75"></span>
- <span class="relative inline-flex rounded-full h-3 w-3 bg-[#E2231A]"></span>
- </span>
- @endif
- </a>
+                            <a href="{{ route('submissions.index', $exam) }}"
+                               class="relative p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#005073] dark:hover:bg-[#00bceb] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800"
+                               title="View Submissions">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                @php $pendingCount = $exam->submissions->where('status', 'pending')->count(); @endphp
+                                @if($pendingCount > 0)
+                                <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E2231A] opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-[#E2231A]"></span>
+                                </span>
+                                @endif
+                            </a>
 
- {{-- EDIT BUTTON --}}
- <a href="{{ route('admin.exams.edit', $exam) }}"
- class="p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#00bceb] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800"
- title="Edit Exam">
- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
- </a>
+                            <a href="{{ route('admin.exams.edit', $exam) }}"
+                               class="p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#00bceb] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800"
+                               title="Edit Exam">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </a>
 
- {{-- SOFT DELETE BUTTON (Opens Modal) --}}
- <button type="button" @click="deleteModalOpen = true; deleteAction = '{{ route('admin.exams.destroy', $exam) }}'"
- class="p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#E2231A] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800" title="Delete Exam">
- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
- </button>
- </div>
- </td>
- </tr>
- @empty
- <tr>
- <td colspan="3" class="px-6 py-20 text-center text-slate-400 italic font-medium">
- <div class="flex flex-col items-center gap-2">
- <svg class="w-10 h-10 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
- <span>No exams found matching your criteria.</span>
- </div>
- </td>
- </tr>
- @endforelse
-</tbody>
- </table>
+                            <button type="button" @click="deleteModalOpen = true; deleteAction = '{{ route('admin.exams.destroy', $exam) }}'"
+                                    class="p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-[#E2231A] text-slate-500 dark:text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 dark:border-slate-800" title="Delete Exam">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="3" class="px-6 py-20 text-center text-slate-400 italic font-medium">
+                        <div class="flex flex-col items-center gap-2">
+                            <svg class="w-10 h-10 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>No exams found matching your criteria.</span>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- MOBILE CARD VIEW --}}
+    <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-700">
+        @forelse($exams as $exam)
+        <div class="p-5 hover:bg-[#eefbff]/30 dark:hover:bg-slate-700/30 transition-colors">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex-1 pr-4">
+                    <div class="font-bold text-slate-700 dark:text-slate-200 leading-tight">{{ $exam->title }}</div>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{{ Str::limit($exam->description, 50) }}</div>
+                </div>
+                
+                <div x-data="{ 
+                    status: '{{ $exam->status }}', 
+                    isLoading: false,
+                    async toggle() {
+                        this.isLoading = true;
+                        try {
+                            const res = await fetch('{{ route('admin.exams.toggle-status', $exam) }}', {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                }
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                this.status = data.status;
+                            }
+                        } catch (e) {
+                            console.error('Toggle failed', e);
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    } 
+                }">
+                    <button @click="toggle()" :disabled="isLoading"
+                            class="p-2 rounded-lg border transition-all"
+                            :class="status === 'active' 
+                                ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50' 
+                                : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-800'">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span x-show="status === 'active'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5"
+                                  :class="status === 'active' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Completion & Essay Status --}}
+            <div class="flex flex-col gap-3 mb-6">
+                @php
+                    $status = $exam->getCompletionStatus();
+                    $pendingEssays = $exam->submissions()->where('status', 'pending')->count();
+                @endphp
+                
+                @if($status['total'] > 0)
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[#049FD9] dark:text-[#00bceb]">
+                        <span>{{ $status['completed'] }}/{{ $status['total'] }} Completed</span>
+                        <span>{{ $status['percentage'] }}%</span>
+                    </div>
+                    <div class="h-1 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+                        <div class="h-full bg-[#049FD9]" style="width: {{ $status['percentage'] }}%"></div>
+                    </div>
+                </div>
+                @endif
+                
+                @if($pendingEssays > 0)
+                <div class="inline-flex items-center px-2 py-1 bg-[#FF9E18]/10 text-[#FF9E18] rounded-lg text-[9px] font-black uppercase tracking-wider border border-[#FF9E18]/20 w-fit">
+                    {{ $pendingEssays }} Essay{{ $pendingEssays > 1 ? 's' : '' }} Pending
+                </div>
+                @endif
+            </div>
+
+            {{-- Actions --}}
+            <div class="flex items-center justify-between gap-2 pt-4">
+                <div class="flex gap-2">
+                    <a href="{{ route('admin.specs', $exam) }}"
+                       class="p-3 bg-slate-50 dark:bg-slate-900 text-slate-500 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </a>
+                    <a href="{{ route('submissions.index', $exam) }}"
+                       class="relative p-3 bg-slate-50 dark:bg-slate-900 text-slate-500 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        @if($pendingEssays > 0)
+                        <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E2231A] opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-[#E2231A]"></span>
+                        </span>
+                        @endif
+                    </a>
+                    <a href="{{ route('admin.exams.edit', $exam) }}"
+                       class="p-3 bg-slate-50 dark:bg-slate-900 text-slate-500 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </a>
+                </div>
+                
+                <button type="button" @click="deleteModalOpen = true; deleteAction = '{{ route('admin.exams.destroy', $exam) }}'"
+                        class="p-3 bg-rose-50 dark:bg-rose-900/10 text-rose-500 rounded-xl border border-rose-100 dark:border-rose-900/30">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </div>
+        </div>
+        @empty
+        <div class="p-10 text-center text-slate-400 italic">
+            No exams found matching your criteria.
+        </div>
+        @endforelse
+    </div>
+</div>
  
  {{-- Pagination Links --}}
  @if($exams->hasPages())
