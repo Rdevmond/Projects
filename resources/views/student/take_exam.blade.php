@@ -65,21 +65,21 @@
                  @elseif($q->type === 'connect')
                     <div class="connect-container relative p-4 md:p-8 bg-slate-50 dark:bg-slate-900/50 rounded-3xl md:rounded-[2.5rem] transition-colors" id="q-{{ $q->id }}" data-question-id="{{ $q->id }}">
                         <canvas class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></canvas>
-                        <div class="flex flex-col md:flex-row justify-between items-center relative z-10 gap-8 md:gap-20">
+                        <div class="grid grid-cols-2 relative z-10 gap-2 md:gap-20">
                             <div class="space-y-4 md:space-y-6 w-full">
                                 @foreach($q->answer_details['pairs'] as $pair)
-                                    <div class="dot-item flex items-center justify-between p-5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm transition-colors" data-side="left" data-value="{{ $pair['left'] }}">
-                                        <span class="font-black text-slate-700 dark:text-slate-300 italic transition-colors">{{ $pair['left'] }}</span>
-                                        <div class="dot w-6 h-6 bg-blue-500 rounded-full cursor-pointer hover:scale-125 transition"></div>
+                                    <div class="dot-item flex items-center justify-between p-3 md:p-5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl md:rounded-2xl shadow-sm transition-colors" data-side="left" data-value="{{ $pair['left'] }}">
+                                        <span class="font-black text-[10px] md:text-base text-slate-700 dark:text-slate-300 italic transition-colors break-words line-clamp-3 md:line-clamp-none">{{ $pair['left'] }}</span>
+                                        <div class="dot shrink-0 w-4 h-4 md:w-6 md:h-6 bg-blue-500 rounded-full cursor-pointer hover:scale-125 transition"></div>
                                     </div>
                                 @endforeach
                             </div>
-                            <div class="space-y-6 w-full">
+                            <div class="space-y-4 md:space-y-6 w-full">
                                 @php $rights = collect($q->answer_details['pairs'])->pluck('right')->shuffle(); @endphp
                                 @foreach($rights as $r)
-                                    <div class="dot-item flex items-center gap-5 p-5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm transition-colors" data-side="right" data-value="{{ $r }}">
-                                        <div class="dot w-6 h-6 bg-blue-500 rounded-full cursor-pointer hover:scale-125 transition"></div>
-                                        <span class="font-black text-slate-700 dark:text-slate-300 italic transition-colors">{{ $r }}</span>
+                                    <div class="dot-item flex items-center gap-2 md:gap-5 p-3 md:p-5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl md:rounded-2xl shadow-sm transition-colors" data-side="right" data-value="{{ $r }}">
+                                        <div class="dot shrink-0 w-4 h-4 md:w-6 md:h-6 bg-blue-500 rounded-full cursor-pointer hover:scale-125 transition"></div>
+                                        <span class="font-black text-[10px] md:text-base text-slate-700 dark:text-slate-300 italic transition-colors break-words line-clamp-3 md:line-clamp-none">{{ $r }}</span>
                                     </div>
                                 @endforeach
                             </div>
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (timeLeft <= 0) {
                     console.log('Timer hit 0!');
                     clearInterval(questionTimerInterval);
-                    const alpineData = document.querySelector('[x-data]').__x.$data;
+                    const alpineData = window.Alpine.$data(document.getElementById('exam-form'));
                     console.log('Alpine data current step:', alpineData.currentStep, 'Total:', alpineData.totalQuestions);
                     if (alpineData.currentStep < alpineData.totalQuestions - 1) {
                         console.log('Forcing next step...');
@@ -385,6 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
             draw();
         }
         window.addEventListener('resize', resize);
+        window.addEventListener('step-changed', () => { setTimeout(resize, 350); }); // redraw canvas after transition
         setTimeout(resize, 200);
 
         container.addEventListener('click', (e) => {

@@ -4,9 +4,9 @@
             <div class="flex items-center">
                 {{-- Logo Section --}}
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center group transition">
-                    <div class="bg-white p-1 md:p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10 group-hover:shadow-md group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
+                    <div class="bg-white p-0.5 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10 group-hover:shadow-md group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
                         <img src="{{ asset('images/logo-netriders.png') }}" alt="Cisco NetRiders"
-                             class="h-10 md:h-12 w-auto block">
+                             class="h-14 md:h-12 w-auto block">
                     </div>
                 </a>
 

@@ -107,40 +107,71 @@
             </div>
         @else
             <div class="bg-white dark:bg-slate-800 rounded-5xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700 transition-colors">
-                        <tr>
-                            <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest">Exam Title</th>
-                            <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest">Date Taken</th>
-                            <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest text-center">Score</th>
-                            <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
-                        @foreach($history as $sub)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
-                            <td class="px-8 py-6">
-                                <div class="font-bold text-slate-700 dark:text-slate-200 transition-colors">{{ $sub->examForm->title }}</div>
-                                <div class="text-xs text-slate-400 dark:text-slate-500 mt-1 transition-colors">{{ Str::limit($sub->examForm->description, 50) }}</div>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">{{ $sub->created_at->format('M d, Y') }}</div>
-                                <div class="text-xs text-slate-400 dark:text-slate-500 transition-colors">{{ $sub->created_at->format('H:i A') }}</div>
-                            </td>
-                            <td class="px-8 py-6 text-center">
+                {{-- Desktop Table --}}
+                <div class="hidden md:block">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700 transition-colors">
+                            <tr>
+                                <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest">Exam Title</th>
+                                <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest">Date Taken</th>
+                                <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest text-center">Score</th>
+                                <th class="px-8 py-6 text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
+                            @foreach($history as $sub)
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
+                                <td class="px-8 py-6">
+                                    <div class="font-bold text-slate-700 dark:text-slate-200 transition-colors">{{ $sub->examForm->title }}</div>
+                                    <div class="text-xs text-slate-400 dark:text-slate-500 mt-1 transition-colors">{{ Str::limit($sub->examForm->description, 50) }}</div>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <div class="text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">{{ $sub->created_at->format('M d, Y') }}</div>
+                                    <div class="text-xs text-slate-400 dark:text-slate-500 transition-colors">{{ $sub->created_at->format('H:i A') }}</div>
+                                </td>
+                                <td class="px-8 py-6 text-center">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-black transition-colors {{ $sub->score >= 70 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' }}">
+                                        {{ $sub->score }} / {{ $sub->total_questions }}
+                                    </span>
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <a href="{{ route('student.result', $sub) }}" class="text-xs font-black text-[#005073] dark:text-[#00bceb] hover:text-[#00bceb] dark:hover:text-white uppercase tracking-widest transition-colors">
+                                        View Result ➔
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Mobile Cards --}}
+                <div class="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
+                    @foreach($history as $sub)
+                    <div class="p-6 flex flex-col gap-4">
+                        <div>
+                            <div class="font-bold text-slate-700 dark:text-slate-200 leading-tight">{{ $sub->examForm->title }}</div>
+                            <div class="text-xs text-slate-400 dark:text-slate-500 mt-1">{{ Str::limit($sub->examForm->description, 60) }}</div>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-[#00bceb] mb-1">Taken On</div>
+                                <div class="text-sm font-bold text-slate-600 dark:text-slate-300">{{ $sub->created_at->format('M d, Y') }}</div>
+                                <div class="text-xs text-slate-400 dark:text-slate-500">{{ $sub->created_at->format('H:i A') }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] font-black uppercase tracking-widest text-[#00bceb] mb-1">Score</div>
                                 <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-black transition-colors {{ $sub->score >= 70 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400' }}">
                                     {{ $sub->score }} / {{ $sub->total_questions }}
                                 </span>
-                            </td>
-                            <td class="px-8 py-6 text-right">
-                                <a href="{{ route('student.result', $sub) }}" class="text-xs font-black text-[#005073] dark:text-[#00bceb] hover:text-[#00bceb] dark:hover:text-white uppercase tracking-widest transition-colors">
-                                    View Result ➔
-                                </a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                            </div>
+                        </div>
+                        <a href="{{ route('student.result', $sub) }}" class="w-full text-center py-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-xs font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-widest transition-colors mt-2 hover:bg-slate-100 dark:hover:bg-slate-950">
+                            View Result ➔
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
             </div>
         @endif
     </div>

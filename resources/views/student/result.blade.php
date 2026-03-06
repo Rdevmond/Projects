@@ -92,11 +92,11 @@
             {{-- CATEGORIZED QUESTION REVIEW --}}
             <div class="space-y-16">
                 {{-- Analysis Header --}}
-                <div class="flex items-center justify-between px-4">
-                    <h3 class="text-2xl font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-wide transition-colors">Performance Summary</h3>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-3 mb-2">
+                    <h3 class="text-xl md:text-2xl font-black text-[#005073] dark:text-[#00bceb] uppercase tracking-wide transition-colors">Performance Summary</h3>
                     <div class="flex gap-2">
-                         <div class="flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-900/30 transition-colors">Correct</div>
-                         <div class="flex items-center gap-2 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-rose-100 dark:border-rose-900/30 transition-colors">Wrong</div>
+                         <div class="flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-900/30 transition-colors">✓ Correct</div>
+                         <div class="flex items-center gap-2 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-rose-100 dark:border-rose-900/30 transition-colors">✗ Wrong</div>
                     </div>
                 </div>
 
@@ -118,14 +118,14 @@
                                 </div>
 
                                 <div class="flex-1">
-                                    <div class="flex justify-between items-start mb-4">
-                                        <h4 class="text-xl font-black text-slate-800 leading-snug">{{ $q->question_text }}</h4>
-                                        <span class="text-[9px] font-black px-3 py-1 bg-slate-100 text-slate-400 rounded-full uppercase tracking-widest">{{ $q->type }}</span>
+                                    <div class="flex flex-wrap justify-between items-start gap-2 mb-4">
+                                        <h4 class="text-lg md:text-xl font-black text-slate-800 dark:text-slate-100 leading-snug transition-colors flex-1">{{ $q->question_text }}</h4>
+                                        <span class="shrink-0 text-[9px] font-black px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-400 rounded-full uppercase tracking-widest transition-colors">{{ $q->type }}</span>
                                     </div>
 
                                     @if($q->context_image_path)
                                         <div class="my-6">
-                                            <img src="{{ asset('storage/' . $q->context_image_path) }}" class="max-h-64 object-cover rounded-2xl border-2 border-slate-50">
+                                            <img src="{{ asset('storage/' . $q->context_image_path) }}" class="max-h-64 object-cover rounded-2xl border-2 border-slate-100 dark:border-slate-700 transition-colors">
                                         </div>
                                     @endif
 
@@ -150,21 +150,24 @@
                                                 @endforeach
                                             </div>
                                         @elseif($q->type == 'connect')
-                                             <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                                             <div class="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-700">
                                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Pairing Analysis</p>
-                                                <div class="grid gap-2">
+                                                <div class="grid gap-3 md:gap-2">
                                                     @foreach($q->answer_details['pairs'] as $pair)
                                                         @php
                                                             $currentAnswer = $userAnswer[$pair['left']] ?? 'Not Answered';
                                                             $isSpecificCorrect = $currentAnswer === $pair['right'];
                                                         @endphp
-                                                        <div class="flex items-center gap-3 text-xs font-bold">
-                                                            <div class="flex-1 p-3 bg-white rounded-xl border border-slate-100">{{ $pair['left'] }}</div>
-                                                            <span class="{{ $isSpecificCorrect ? 'text-emerald-500' : 'text-rose-500' }}">➔</span>
-                                                            <div class="flex-1 p-3 rounded-xl border {{ $isSpecificCorrect ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700' }}">
+                                                        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 text-xs font-bold">
+                                                            <div class="flex-1 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors">{{ $pair['left'] }}</div>
+                                                            
+                                                            <div class="hidden md:block {{ $isSpecificCorrect ? 'text-emerald-500' : 'text-rose-500' }} transition-colors">➔</div>
+                                                            <div class="md:hidden flex justify-center {{ $isSpecificCorrect ? 'text-emerald-500' : 'text-rose-500' }} transition-colors">⬇</div>
+
+                                                            <div class="flex-1 p-3 rounded-xl border transition-colors {{ $isSpecificCorrect ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-900/30 text-rose-700 dark:text-rose-400' }}">
                                                                 {{ $currentAnswer }}
                                                                 @if(!$isSpecificCorrect)
-                                                                    <div class="text-[9px] mt-1 text-slate-400 font-black uppercase tracking-tighter">Correct: {{ $pair['right'] }}</div>
+                                                                    <div class="text-[9px] mt-1 text-slate-400 dark:text-slate-500 font-black uppercase tracking-tighter transition-colors">Correct: {{ $pair['right'] }}</div>
                                                                 @endif
                                                             </div>
                                                         </div>
