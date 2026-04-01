@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-10" x-data="{
-    search: '',
     genPass() { this.$refs.passInput.value = Math.random().toString(36).slice(-8); },
     confirmDelete(action, name) {
         window.confirmAction({
@@ -36,13 +35,13 @@
             <p class="text-slate-500 dark:text-slate-400 font-semibold">Register new students and manage credentials for Cisco NetRider's exams</p>
         </div>
 
-        <div class="relative w-full md:w-80">
-            <input type="text" x-model="search" placeholder="Search name or school..."
+        <form action="{{ route('admin.users.index') }}" method="GET" class="relative w-full md:w-80">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name or school..."
                 class="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:ring-4 focus:ring-[#E2231A]/10 focus:border-[#E2231A]/50 transition shadow-sm font-bold text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500">
             <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2231A]/40 dark:text-[#E2231A]/60">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-        </div>
+        </form>
     </div>
 
     {{-- Registration Form Card --}}
@@ -125,8 +124,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
                     @forelse($users as $user)
-                    <tr x-show="search === '' || '{{ strtolower($user->name) }} {{ strtolower($user->school) }}'.includes(search.toLowerCase())"
-                        class="hover:bg-slate-50 dark:hover:bg-slate-800/30 group transition-all duration-200">
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 group transition-all duration-200">
                         <td class="px-8 py-6">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full bg-[#005073] bg-gradient-to-br from-[#005073] to-[#00bceb] flex items-center justify-center text-white font-black text-xs shadow-lg border-2 border-white dark:border-slate-800 ring-2 ring-[#00bceb]/20 transition-all group-hover:ring-[#00bceb]/40">
@@ -197,8 +195,7 @@
         {{-- MOBILE CARD VIEW --}}
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
             @forelse($users as $user)
-            <div x-show="search === '' || '{{ strtolower($user->name) }} {{ strtolower($user->school) }}'.includes(search.toLowerCase())"
-                 class="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+            <div class="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                 <div class="flex items-center gap-4 mb-4">
                     <div class="shrink-0 w-12 h-12 rounded-full bg-[#005073] bg-gradient-to-br from-[#005073] to-[#00bceb] flex items-center justify-center text-white font-black text-sm border-2 border-white dark:border-slate-800 shadow-md">
                         {{ strtoupper(substr($user->name, 0, 1)) }}

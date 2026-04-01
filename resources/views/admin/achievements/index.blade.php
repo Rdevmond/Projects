@@ -2,15 +2,25 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto py-10 transition-colors">
- <div class="mb-10 flex justify-between items-center transition-colors">
- <div>
- <h1 class="text-4xl font-black text-[#005073] dark:text-[#00bceb] tracking-tight transition-colors">Achievements & News</h1>
- <p class="text-slate-500 dark:text-slate-400 font-medium transition-colors">Manage the success stories and updates shown on the home page.</p>
- </div>
- <a href="{{ route('admin.achievements.create') }}" class="px-8 py-4 bg-[#E2231A] text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-rose-900/20 transition transform hover:-translate-y-1">
- + New Achievement
- </a>
- </div>
+  <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors">
+  <div class="flex-1">
+  <h1 class="text-4xl font-black text-[#005073] dark:text-[#00bceb] tracking-tight transition-colors">Achievements & News</h1>
+  <p class="text-slate-500 dark:text-slate-400 font-medium transition-colors">Manage the success stories and updates shown on the home page.</p>
+  </div>
+  
+  {{-- Search Bar --}}
+  <form action="{{ route('admin.achievements.index') }}" method="GET" class="relative w-full md:w-80">
+      <input type="text" name="search" value="{{ request('search') }}" placeholder="Search news or stories..."
+          class="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-xs focus:ring-4 focus:ring-[#E2231A]/10 focus:border-[#E2231A]/50 transition shadow-sm font-bold text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500">
+      <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2231A]/40">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+  </form>
+
+  <a href="{{ route('admin.achievements.create') }}" class="shrink-0 px-8 py-4 bg-[#E2231A] text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-rose-900/20 transition transform hover:-translate-y-1">
+  + New Achievement
+  </a>
+  </div>
  <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl dark:shadow-none overflow-hidden transition-colors">
         {{-- DESKTOP VIEW --}}
         <div class="hidden md:block overflow-x-auto">

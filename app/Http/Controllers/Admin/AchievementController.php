@@ -9,9 +9,19 @@ use Illuminate\Support\Facades\Storage;
 
 class AchievementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $achievements = Achievement::latest()->paginate(10);
+        $query = Achievement::latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $achievements = $query->paginate(10)->withQueryString();
         return view('admin.achievements.index', compact('achievements'));
     }
 

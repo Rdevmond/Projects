@@ -329,9 +329,20 @@ class ExamController extends Controller
         return redirect()->route('student.result', $submission);
     }
 
-    public function showSubmissions(ExamForm $exam)
+    public function showSubmissions(Request $request, ExamForm $exam)
     {
-        $submissions = ExamSubmission::with('user')->where('exam_form_id', $exam->id)->latest()->get();
+        $query = ExamSubmission::with('user')->where('exam_form_id', $exam->id)->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('school', 'like', "%{$search}%");
+            });
+        }
+
+        $submissions = $query->paginate(15)->withQueryString();
         return view('admin.submissions.index', compact('exam', 'submissions'));
     }
 

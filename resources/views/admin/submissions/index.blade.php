@@ -3,18 +3,28 @@
 @section('content')
 <div class="max-w-5xl mx-auto py-8">
  {{-- Header --}}
- <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
- <div>
+ <div class="mb-8 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+ <div class="flex-1">
  <a href="{{ route('admin.dashboard') }}" class="text-[#00bceb] font-bold text-sm hover:text-[#005073] dark:hover:text-white transition flex items-center gap-2">
  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
  Back to Dashboard
  </a>
  <h1 class="text-3xl font-black text-[#005073] dark:text-[#00bceb] tracking-tight mt-2 transition-colors">Exam Submissions</h1>
- <p class="text-slate-500 dark:text-slate-400 font-medium italic transition-colors">{{ $exam->title }}</p>
+ <p class="text-slate-500 dark:text-slate-400 font-medium italic transition-colors leading-tight">{{ $exam->title }}</p>
  </div>
- <div class="text-left md:text-right bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
+ 
+ {{-- Search Bar --}}
+ <form action="{{ route('submissions.index', $exam) }}" method="GET" class="relative w-full lg:w-80">
+     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name or school..."
+         class="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-xs focus:ring-4 focus:ring-[#00bceb]/10 focus:border-[#00bceb]/50 transition shadow-sm font-bold text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500">
+     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[#00bceb]/40">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+     </div>
+ </form>
+
+ <div class="text-left md:text-right bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors shrink-0">
  <span class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 block tracking-widest mb-1 transition-colors">Total Entries</span>
- <span class="text-2xl font-black text-[#005073] dark:text-white transition-colors">{{ $submissions->count() }}</span>
+ <span class="text-2xl font-black text-[#005073] dark:text-white transition-colors">{{ $submissions->total() }}</span>
  </div>
  </div>
 
@@ -182,6 +192,12 @@
             </div>
             @endforelse
         </div>
+
+        @if($submissions->hasPages())
+        <div class="px-6 py-4 border-t border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 transition-colors">
+            {{ $submissions->links() }}
+        </div>
+        @endif
     </div>
 </div>
 

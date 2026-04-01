@@ -153,8 +153,8 @@
 
         /* Toast Animations */
         @keyframes toast-in {
-            from { transform: translateY(100%) scale(0.9); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
+            from { transform: translateX(100%) scale(0.9); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
         }
         .animate-toast-in { animation: toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 </style>
@@ -195,7 +195,7 @@
             @if(session('status')) add({ title: 'Status Update', message: '{{ session('status') }}', type: 'primary' }); @endif
          "
          @notify.window="add($event.detail)"
-         class="fixed bottom-8 right-8 z-9999 flex flex-col gap-3 max-w-md w-full pointer-events-none">
+         class="fixed top-24 right-8 z-9999 flex flex-col gap-3 max-w-md w-full pointer-events-none">
         <template x-for="toast in toasts" :key="toast.id">
             <div class="pointer-events-auto bg-white dark:bg-slate-900 border-l-4 rounded-2xl shadow-2xl p-4 flex items-center gap-4 animate-toast-in border-slate-200 dark:border-slate-800 transition-colors duration-300"
                  :class="{

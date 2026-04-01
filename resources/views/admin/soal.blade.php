@@ -393,17 +393,21 @@
  </button>
  </div>
 
- {{-- Action Bar (Static) --}}
- <div class="w-full">
- <div class="bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-8 border-b-[#E2231A] dark:border-b-[#00bceb] rounded-full p-4 flex items-center justify-between shadow-2xl transition-colors duration-300">
+ {{-- Action Bar (Sticky) --}}
+ <div class="fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none transition-colors">
+ <div class="max-w-5xl mx-auto pointer-events-auto">
+ <div class="bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-slate-200 dark:border-slate-800 border-b-8 border-b-[#E2231A] dark:border-b-[#00bceb] rounded-full p-4 flex items-center justify-between shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.7)] transition-all duration-300">
  <div class="pl-6 text-slate-400 dark:text-slate-500">
  <span class="block text-[8px] font-black uppercase tracking-widest leading-none mb-1">Total nodes</span>
  <span class="text-xl font-black leading-none text-slate-800 dark:text-white" x-text="questions.length"></span>
  </div>
+ <div class="flex items-center gap-4">
  <button type="submit"
- class="bg-[#E2231A] dark:bg-[#00bceb] hover:bg-[#be1e16] dark:hover:bg-[#008ebb] text-white dark:text-slate-900 px-10 py-4 rounded-full font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95">
+ class="bg-[#E2231A] dark:bg-[#00bceb] hover:bg-[#c91811] dark:hover:bg-[#00a3cc] text-white dark:text-slate-900 px-10 py-4 rounded-full font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95">
  {{ isset($exam) ? 'Update Records' : 'Save & Publish' }}
  </button>
+ </div>
+ </div>
  </div>
  </div>
  </form>
