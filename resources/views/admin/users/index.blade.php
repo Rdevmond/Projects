@@ -92,6 +92,44 @@
         </form>
     </div>
 
+    {{-- Bulk Import Card --}}
+    <div class="bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl shadow-slate-200/60 dark:shadow-black/40 border border-slate-100 dark:border-slate-700 p-10 md:p-12 mb-10 relative overflow-hidden transition-colors duration-300">
+        {{-- Decorative gradient --}}
+        <div class="absolute top-0 left-0 w-96 h-96 opacity-10 dark:opacity-20 pointer-events-none" style="background: radial-gradient(circle, #00bceb 0%, transparent 70%);"></div>
+        
+        <div class="flex items-center gap-4 mb-8 relative z-10">
+            <div class="p-3 rounded-2xl bg-[#00bceb] bg-gradient-to-br from-[#00bceb] to-[#005073] shadow-lg shadow-[#00bceb]/40">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-black text-[#005073] dark:text-white tracking-tight uppercase">Bulk Import via Excel</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-widest">Rapid Generation Tool</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
+            <div>
+                 <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">1. Download the expected Excel template format. Fill the template with valid student details.</p>
+                 <a href="{{ route('admin.users.template') }}" data-no-loader="true" class="inline-flex items-center px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs text-[#005073] dark:text-white bg-slate-100 dark:bg-slate-800 hover:bg-[#00bceb] hover:text-white dark:hover:bg-[#00bceb] transition-all transform hover:-translate-y-0.5 border border-slate-200 dark:border-slate-700">
+                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                     Download Template
+                 </a>
+            </div>
+            
+            <form action="{{ route('admin.users.import') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+                @csrf
+                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">2. Upload the filled Excel document to begin auto-creation.</p>
+                <div class="flex gap-4">
+                    <input type="file" name="excel_file" accept=".xlsx,.xls,.csv" class="flex-1 w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-[#00bceb]/20 focus:border-[#00bceb] font-bold text-slate-800 dark:text-white transition" required>
+                    
+                    <button type="submit" class="px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs text-white shadow-xl shadow-[#00bceb]/30 dark:shadow-none hover:shadow-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 bg-[#00bceb] bg-gradient-to-r from-[#00bceb] to-[#005073] border-none">
+                        Upload Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Students Table --}}
     <div class="bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl shadow-slate-200/60 dark:shadow-black/40 border border-slate-100 dark:border-slate-700 border-t-4 border-t-[#E2231A] overflow-hidden transition-colors duration-300">
         <div class="p-8 md:p-10 border-b border-slate-100 dark:border-slate-700">

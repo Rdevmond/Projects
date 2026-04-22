@@ -386,7 +386,7 @@
                     const href = this.getAttribute('href');
                     const target = this.getAttribute('target');
                     
-                    if (!href || href.startsWith('javascript:') || href.startsWith('#') || target === '_blank') return;
+                    if (!href || href.startsWith('javascript:') || href.startsWith('#') || target === '_blank' || this.hasAttribute('download') || this.hasAttribute('data-no-loader')) return;
 
                     try {
                         const url = new URL(href, window.location.origin + window.location.pathname);

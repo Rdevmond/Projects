@@ -394,7 +394,7 @@ class ExamController extends Controller
             ->where('exam_form_id', $exam->id)
             ->first();
         
-        if ($existing) {
+        if ($existing && $existing->status !== 'in_progress') {
             return redirect()->route('student.result', $existing);
         }
         
@@ -474,12 +474,31 @@ class ExamController extends Controller
     public function gradeEssay(Request $request, ExamSubmission $submission)
     {
         $request->validate([
-            'manual_points' => 'required|numeric|min:0|max:1',
+            'grades' => 'required|array',
+            'grades.*' => 'numeric|min:0|max:1',
         ]);
+
+        $snapshot = $submission->answers_snapshot ?: [];
+        $newScore = 0;
+
+        // Update the snapshot with the new grades
+        foreach ($snapshot as &$item) {
+            // Check if this question was graded
+            if (isset($request->grades[$item['question_id']])) {
+                $points = (float) $request->grades[$item['question_id']];
+                $item['is_correct'] = ($points > 0);
+            }
+
+            // Recalculate score
+            if (!empty($item['is_correct'])) {
+                $newScore++;
+            }
+        }
 
         // Admin mengisi skor total
         $submission->update([
-            'score' => $submission->score + $request->manual_points,
+            'score' => $newScore,
+            'answers_snapshot' => $snapshot,
             'status' => 'completed',
         ]);
 

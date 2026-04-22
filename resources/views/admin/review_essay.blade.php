@@ -54,13 +54,17 @@
                 </div>
 
                 {{-- Scoring Input --}}
-                <div x-data="{ manualPoints: 0 }" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 sm:p-6 bg-[#eefbff] dark:bg-[#00bceb]/10 rounded-2xl border border-[#00bceb]/20 dark:border-[#00bceb]/30 transition-colors">
+                @php
+                    $itemObj = collect($submission->answers_snapshot)->firstWhere('question_id', $question->id);
+                    $prevPoint = (!empty($itemObj['is_correct'])) ? 1 : 0;
+                @endphp
+                <div x-data="{ manualPoints: {{ $prevPoint }} }" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 sm:p-6 bg-[#eefbff] dark:bg-[#00bceb]/10 rounded-2xl border border-[#00bceb]/20 dark:border-[#00bceb]/30 transition-colors">
                     <div class="grow w-full">
                         <span class="text-sm font-black text-[#005073] dark:text-[#00bceb] transition-colors">Mark as Result</span>
                         <p class="text-xs text-[#00bceb] dark:text-slate-400 font-bold transition-colors">Choose between Incorrect (0) or Correct (1)</p>
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <input type="hidden" name="manual_points" :value="manualPoints">
+                        <input type="hidden" name="grades[{{ $question->id }}]" :value="manualPoints">
                         
                         <button type="button" @click="manualPoints = 0"
                             :class="manualPoints == 0 ? 'bg-[#E2231A] text-white shadow-lg shadow-rose-500/30' : 'bg-white dark:bg-slate-800 text-slate-400 border-2 border-slate-100 dark:border-slate-700'"

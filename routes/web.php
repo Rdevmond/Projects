@@ -42,6 +42,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     ]);
     Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
     Route::post('/users', [UserController::class, 'store'])->name('admin.users.store');
+    Route::get('/users/template', [UserController::class, 'downloadTemplate'])->name('admin.users.template');
+    Route::post('/users/import', [UserController::class, 'import'])->name('admin.users.import');
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
     Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');

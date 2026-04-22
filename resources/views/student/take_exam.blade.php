@@ -43,20 +43,36 @@
                     </div>
                 @endif
 
-                {{-- Multiple Choice: Checkbox for multiple right answers --}}
+                {{-- Multiple Choice: Premium Exam UI --}}
                 @if($q->type === 'option')
                     <div class="grid gap-4">
-                        @foreach($q->answer_details['options'] as $opt)
-                            <label class="flex items-center p-4 md:p-6 rounded-3xl md:rounded-4xl border-2 border-slate-50 dark:border-slate-700 cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-700/50 hover:border-blue-200 dark:hover:border-blue-500 transition-all group">
-                                <input type="checkbox" name="answers[{{ $q->id }}][]" value="{{ $opt['id'] }}"
-                                    class="w-5 h-5 md:w-6 md:h-6 rounded-lg border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 transition-all">
+                        @foreach($q->answer_details['options'] as $optIndex => $opt)
+                            @php
+                                $letter = chr(65 + $optIndex); // A, B, C, D...
+                            @endphp
+                            <label class="relative flex items-center p-4 md:p-6 rounded-3xl md:rounded-4xl border-2 border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer hover:border-[#00bceb] dark:hover:border-[#00bceb] transition-all overflow-hidden group shadow-sm hover:shadow-md">
+                                <input type="checkbox" name="answers[{{ $q->id }}][]" value="{{ $opt['id'] }}" class="peer sr-only">
                                 
-                                @if(isset($opt['image']) && $opt['image'])
-                                    <img src="{{ asset('storage/' . $opt['image']) }}" 
-                                         class="ml-3 md:ml-5 w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl border-2 border-slate-100 dark:border-slate-600 shadow-sm transition-colors">
-                                @endif
+                                {{-- Selection Indicator / Letter --}}
+                                <div class="shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 font-black text-lg peer-checked:bg-[#00bceb] peer-checked:border-[#00bceb] peer-checked:text-white transition-all peer-checked:shadow-lg peer-checked:shadow-[#00bceb]/30">
+                                    <span class="group-hover:hidden peer-checked:block transition-all">{{ $letter }}</span>
+                                    {{-- Hover state checkmark icon --}}
+                                    <svg class="w-6 h-6 hidden group-hover:block peer-checked:!hidden text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                
+                                {{-- Option Content --}}
+                                <div class="ml-4 md:ml-6 flex-1">
+                                    @if(isset($opt['image']) && $opt['image'])
+                                        <div class="mb-3">
+                                            <img src="{{ asset('storage/' . $opt['image']) }}" class="h-32 object-contain rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 p-2 shadow-inner transition-colors">
+                                        </div>
+                                    @endif
+                                    <span class="text-base md:text-lg text-slate-700 dark:text-slate-200 font-bold peer-checked:text-[#005073] dark:peer-checked:text-[#00bceb] transition-colors block w-full leading-relaxed">{{ $opt['text'] }}</span>
+                                </div>
 
-                                <span class="ml-3 md:ml-5 text-base md:text-lg text-slate-700 dark:text-slate-300 font-bold group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{{ $opt['text'] }}</span>
+                                {{-- Active Selected Background --}}
+                                <div class="absolute inset-0 bg-[#00bceb]/5 dark:bg-[#00bceb]/10 opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
+                                <div class="absolute inset-0 border-2 border-[#00bceb] rounded-3xl md:rounded-4xl opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
                             </label>
                         @endforeach
                     </div>
@@ -187,16 +203,75 @@ document.addEventListener('DOMContentLoaded', function() {
         history.go(1);
     };
 
-    // Warn before leaving page
+    const form = document.getElementById('exam-form');
+    const storageKey = 'exam_answers_{{ $exam->uuid }}_{{ Auth::id() }}';
+
+    // AUTO-SAVE LOGIC
+    window.saveAnswersLocally = function() {
+        if(!form) return;
+        const formData = new FormData(form);
+        const answers = {};
+        for (let [key, value] of formData.entries()) {
+            if (key === '_token') continue;
+            if (!answers[key]) answers[key] = [];
+            answers[key].push(value);
+        }
+        localStorage.setItem(storageKey, JSON.stringify(answers));
+    };
+
+    form.addEventListener('input', window.saveAnswersLocally);
+    form.addEventListener('change', window.saveAnswersLocally);
+
+    // RESTORE STANDARD INPUTS LOGIC
+    const savedAnswersData = localStorage.getItem(storageKey);
+    if (savedAnswersData) {
+        try {
+            const answers = JSON.parse(savedAnswersData);
+            for (let key in answers) {
+                const values = answers[key];
+                const inputs = form.querySelectorAll(`[name="${key.replace(/[\[\]]/g, '\\$&')}"]`); // Escape brackets
+                if (inputs.length > 0) {
+                    if (inputs[0].type === 'checkbox' || inputs[0].type === 'radio') {
+                        inputs.forEach(input => {
+                            if (values.includes(input.value)) input.checked = true;
+                        });
+                    } else if (inputs[0].tagName === 'TEXTAREA' || inputs[0].type === 'text') {
+                        inputs[0].value = values[0];
+                    }
+                }
+            }
+        } catch(e) { console.error('Failed to restore answers', e); }
+    }
+
+    // ANTI-CHEAT MECHANISMS
+    document.addEventListener('contextmenu', e => e.preventDefault()); // Prevent right click
+    document.addEventListener('copy', e => { e.preventDefault(); window.notify('Copying is prohibited.', 'Security Alert', 'error'); });
+    document.addEventListener('cut', e => { e.preventDefault(); window.notify('Cutting is prohibited.', 'Security Alert', 'error'); });
+    document.addEventListener('paste', e => { e.preventDefault(); window.notify('Pasting is not allowed during the exam.', 'Security Alert', 'error'); });
+    
+    // Tab Switching detection
+    let cheatWarnings = 0;
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            cheatWarnings++;
+            if (cheatWarnings === 1) {
+                alert('SECURITY WARNING: Leaving the exam tab is not allowed to prevent cheating. If you do this again, your exam will be automatically locked and submitted.');
+            } else if (cheatWarnings >= 2) {
+                window.onbeforeunload = null;
+                form.submit();
+            }
+        }
+    });
+
+    // Warn before leaving page safely
     window.onbeforeunload = function() {
-        return 'Are you sure you want to leave? Your exam progress will be lost.';
+        return 'Are you sure you want to leave? Your exam progress has been locally backed up, but time may continue ticking.';
     };
 
     // TIMER LOGIC
     const durationMode = '{{ $exam->duration_mode }}';
     const globalDurationVal = {{ $exam->duration ?? 0 }};
     const questions = @json($exam->questions);
-    const form = document.getElementById('exam-form');
     let fiveMinWarningShown = false;
     let questionTimerInterval = null;
     
@@ -365,6 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const timerKey = 'exam_start_' + '{{ $exam->uuid }}';
                 localStorage.removeItem(timerKey);
             }
+            localStorage.removeItem(storageKey); // Clear autosaved answers on deliberate submit
             form.submit();
         };
 
@@ -386,6 +462,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         window.addEventListener('resize', resize);
         window.addEventListener('step-changed', () => { setTimeout(resize, 350); }); // redraw canvas after transition
+        
+        // RESTORE CONNECTION LINES FROM AUTOSAVE
+        if (savedAnswersData) {
+            try {
+                const answers = JSON.parse(savedAnswersData);
+                // The name format is answers[1][leftval] = rightval
+                Object.keys(answers).forEach(key => {
+                    const match = key.match(new RegExp(`answers\\[${qId}\\]\\[(.*?)\\]`));
+                    if (match) {
+                        const leftVal = match[1];
+                        const rightVal = answers[key][0];
+                        
+                        // Using CSS.escape for potential special chars in values
+                        const leftItem = container.querySelector(`.dot-item[data-side="left"][data-value="${CSS.escape(leftVal)}"]`);
+                        const rightItem = container.querySelector(`.dot-item[data-side="right"][data-value="${CSS.escape(rightVal)}"]`);
+                        
+                        if (leftItem && rightItem) {
+                            connections.push({
+                                left: leftVal, right: rightVal, 
+                                leftEl: leftItem.querySelector('.dot'), 
+                                rightEl: rightItem.querySelector('.dot'),
+                                color: colors[Math.floor(Math.random() * colors.length)]
+                            });
+                        }
+                    }
+                });
+                updateInputs();
+            } catch(e) {}
+        }
+        
         setTimeout(resize, 200);
 
         container.addEventListener('click', (e) => {
@@ -448,6 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.value = c.right;
                 hiddenContainer.appendChild(input);
             });
+            window.saveAnswersLocally(); // Trigger save on dots connected
         }
     });
 });

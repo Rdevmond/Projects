@@ -12,7 +12,7 @@
 
     {{-- TOMBOL DOWNLOAD REPORT --}}
     <div class="w-full md:w-auto">
-        <a href="{{ route('admin.exams.report', $exam) }}"
+        <a href="{{ route('admin.exams.report', $exam) }}" data-no-loader="true"
             class="flex items-center justify-center gap-2 px-6 py-3 bg-[#005073] dark:bg-[#00bceb] text-white dark:text-slate-900 rounded-2xl font-bold text-xs hover:bg-[#003d58] dark:hover:bg-[#008ebb] transition shadow-lg shadow-blue-100 dark:shadow-none uppercase tracking-widest w-full md:w-auto">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>

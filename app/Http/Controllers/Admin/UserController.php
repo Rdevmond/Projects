@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\UserTemplateExport;
+use App\Imports\UsersImport;
 
 class UserController extends Controller
 {
@@ -27,6 +30,25 @@ class UserController extends Controller
 
         $users = $query->paginate(10)->withQueryString();
         return view('admin.users.index', compact('users'));
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new UserTemplateExport, 'student_template.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|mimes:xlsx,csv,xls',
+        ]);
+
+        try {
+            Excel::import(new UsersImport, $request->file('excel_file'));
+            return back()->with('success', 'Students imported successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error importing file: ' . $e->getMessage());
+        }
     }
 
     public function store(Request $request)
